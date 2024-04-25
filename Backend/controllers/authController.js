@@ -18,21 +18,17 @@ exports.registerController = async (req, res) => {
         message: "User already registered please login",
       });
     } else {
-      const hashedPassword = await hashPassword(password);
+      // const hashedPassword = await hashPassword(password);
       const user = await new userModel({
         name: name,
         email: email,
-        password: hashedPassword,
+        password: password,
         mobile: mobile,
       }).save();
       //JWT generation
-      const token = await JWT.sign(
-        { _id: user._id },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "3d",
-        }
-      );
+      const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "3d",
+      });
 
       res.cookie("token", token, {
         maxAge: 259200000,
@@ -68,8 +64,8 @@ exports.loginController = async (req, res) => {
       });
     }
 
-    const match = await comparePassword(password, existingUser.password);
-    if (!match) {
+    // const match = await comparePassword(password, existingUser.password);
+    if (password != existingUser.password) {
       return res.status(401).json({
         success: false,
         message: "Invalid username or password",
@@ -93,7 +89,7 @@ exports.loginController = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User Login Successful",
-      user: existingUser
+      user: existingUser,
     });
   } catch (error) {
     console.log(error);
@@ -103,9 +99,8 @@ exports.loginController = async (req, res) => {
   }
 };
 
-
 exports.getUserDetails = async (req, res, next) => {
-  const user = await userModel.findById(req.user._id).select('-password');
+  const user = await userModel.findById(req.user._id).select("-password");
 
   res.status(200).json({
     success: true,
@@ -115,7 +110,6 @@ exports.getUserDetails = async (req, res, next) => {
 
 //logout user
 exports.logoutUser = async (req, res, next) => {
-
   res.cookie("token", null, {
     expires: new Date(Date.now()),
     httpOnly: true,
@@ -123,13 +117,13 @@ exports.logoutUser = async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "logged out"
-  })
+    message: "logged out",
+  });
 };
 
 //getting all user--admin
 exports.getAllUsers = async (req, res, next) => {
-  const users = await userModel.find().select('-password');
+  const users = await userModel.find().select("-password");
 
   res.status(200).json({
     success: true,

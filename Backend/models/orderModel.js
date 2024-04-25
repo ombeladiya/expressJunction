@@ -32,11 +32,12 @@ const orderSchema = new mongoose.Schema({
   deliveredAt: {
     type: Date,
   },
+
   reached: [
     {
       time: {
         type: Date,
-        default: Date.now
+        default: Date.now,
       },
       centerId: {
         type: mongoose.ObjectId,

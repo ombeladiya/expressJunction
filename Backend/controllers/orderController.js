@@ -6,8 +6,7 @@ const addressModel = require("../models/addressModel");
 //palce order controller
 exports.placeOrderController = async (req, res) => {
   try {
-    const { companyId, sourceId, destinationId, items } =
-      req.body;
+    const { uid, companyId, sourceId, destinationId, items } = req.body;
     // Calculate totalWeight from items
     const totalWeight = items.reduce((acc, item) => acc + item.weight, 0);
     const company = await Company.findById(companyId);
@@ -21,7 +20,7 @@ exports.placeOrderController = async (req, res) => {
     const totalPrice = totalWeight * company.price;
     // Create the order object
     const order = new Order({
-      userId: req.user._id,
+      userId: uid,
       companyId,
       sourceId,
       destinationId,
@@ -91,7 +90,7 @@ exports.fetchAllOrdersOfCompany = async (req, res) => {
   }
 };
 
-//fetch all orders controller--admin 
+//fetch all orders controller--admin
 exports.fetchAllOrdersController = async (req, res) => {
   try {
     const AllOrders = await Order.find();
@@ -145,6 +144,49 @@ exports.cityCenterOrderController = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders",
+    });
+  }
+};
+
+//fetch all orders of single user
+
+exports.fetchUserController = async (req, res) => {
+  try {
+    const uid = await req.user._id;
+    const userOrders = await Order.find({ userId: req.user._id });
+    const totalOrders = userOrders.length;
+    const cnfOrders = await Order.find({ status: "Confirmed" });
+    const ncnfOrders = await Order.find({ status: "Not-Confirmed" });
+    const reachedOrders = await Order.find({ status: "Reached" });
+    const intOrders = await Order.find({ status: "In-Transit" });
+    const cnfnum = cnfOrders.length;
+    const ncnfnum = ncnfOrders.length;
+    const reachednum = reachedOrders.length;
+    const intnum = intOrders.length;
+    const cancelledorders = await Order.find({ status: "Cancelled" });
+    const cannum = cancelledorders.length;
+
+    res.status(200).json({
+      success: true,
+      canNum: cannum,
+      cancelled: cancelledorders,
+      reachedN: reachednum,
+      reached: reachedOrders,
+      intNum: intnum,
+      in_trasnit: intOrders,
+      ncnfNum: ncnfnum,
+      ncnf: ncnfOrders,
+      cnfNum: cnfnum,
+      cnf: cnfOrders,
+      total_orders: totalOrders,
+      userOrders,
+      uid,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server error in fetching user orders",
     });
   }
 };
