@@ -53,7 +53,7 @@ export function AddSender() {
 
     const setaddress = async () => {
         try {
-            const { data } = await axios.post("http://localhost:5000/api/v1/address/add-address", { name, email, city, country, district, phoneNo: mobile, pincode, landmark: area, state });
+            const { data } = await axios.post("/api/v1/address/add-address", { name, email, city, country, district, phoneNo: mobile, pincode, landmark: area, state });
             localStorage.setItem("sourceId", data.id);
             localStorage.setItem('from', pincode);
             navigate("/addparcel");
@@ -77,7 +77,7 @@ export function AddSender() {
         }
         async function getaddress() {
             try {
-                const { data } = await axios.get("http://localhost:5000/api/v1/address/get-address");
+                const { data } = await axios.get("/api/v1/address/get-address");
                 if (data.address.length == 0) {
                     setvisible(false);
                 }
@@ -88,6 +88,7 @@ export function AddSender() {
         }
         getaddress();
     }, [isAuthenticated]);
+
     return (
         <div className="mx-auto w-full min-h-screen bg-slate-100 py-2">
             <div className="mx-auto my-4 max-w-6xl md:my-6">
@@ -164,7 +165,6 @@ export function AddSender() {
                                 <div className="px-3 capitalize">{add.name} , Mo.{add.phoneNo}, {add.landmark},{add.city}, {add.district}, {add.state}, {add.country} - {add.pincode} </div>
                             </div>)}
                         </div>
-
                         <div className="sm:flex justify-end">
                             <button
                                 type="button"
@@ -183,7 +183,8 @@ export function AddSender() {
                         </div>
                     </div>
                     <div className={`font-semibold cursor-pointer ${visible ? 'hidden' : 'flex'}`} onClick={() => setvisible(!visible)}> <ArrowLeft size={18} /><span className="px-2 -mt-1">Back</span></div>
-                    <div className={`mt-6 gap-6 space-y-2 ${visible ? 'hidden sm:hidden' : 'sm:grid'} sm:grid-cols-2 md:grid-cols-3 sm:space-y-0`}>
+                    <form className={`mt-6 gap-6 space-y-2 ${visible ? 'hidden sm:hidden' : 'sm:grid'} sm:grid-cols-2 md:grid-cols-3 sm:space-y-0`} onSubmit={setaddress}>
+
                         <div className="w-full">
                             <label
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -211,7 +212,8 @@ export function AddSender() {
                                 type="tel"
                                 placeholder="Enter your Mobile"
                                 id="mobile"
-                                pattern='[0-9]{10}'
+                                pattern='[1-9]{1}[0-9]{9}'
+                                title="Mobile number should be 10 digits"
                                 onChange={(e) => setMobile(e.target.value)}
                                 required />
                         </div>
@@ -229,6 +231,7 @@ export function AddSender() {
                                     placeholder="Enter your email"
                                     id="email"
                                     onChange={(e) => setMail(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>
@@ -245,6 +248,7 @@ export function AddSender() {
                                     type="text"
                                     placeholder="Enter your area"
                                     onChange={(e) => setArea(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>
@@ -261,6 +265,8 @@ export function AddSender() {
                                     type="number"
                                     placeholder="Enter your pincode"
                                     id="pincode"
+                                    pattern="[0-9]{6}"
+                                    title="Please enter a valid pincode"
                                     value={pincode}
                                     onChange={(e) => getadata(e)}
                                     required
@@ -340,15 +346,12 @@ export function AddSender() {
                         </div>
 
                         <div className="col-span-3 flex justify-end">
-                            <button
-                                type="button"
-                                onClick={() => setaddress()}
+                            <input
+                                type="submit"
                                 className="w-full sm:w-56 h-10 rounded-md bg-orange-600 px-3 mt-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                            >
-                                Next Step
-                            </button>
+                            />                            
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>

@@ -18,7 +18,7 @@ const deliveryAgentSchema = new mongoose.Schema({
     required: true,
   },
   cityCenter: {
-    type: mongoose.ObjectId,
+    type: mongoose.Types.ObjectId,
     ref: "citycenter",
     required: true,
   },

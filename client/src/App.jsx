@@ -29,7 +29,7 @@ function App() {
     const fetchData = async () => {
       try {
         dispatch(loadUserRequest());
-        const { data } = await axios.get("http://localhost:5000/api/v1/auth/me");
+        const { data } = await axios.get("/api/v1/auth/me");
         if (data.success) {
           dispatch(loadUserSuccess(data.user));
         }
@@ -46,6 +46,7 @@ function App() {
     <>
       <Header />
       <ToastContainer
+        className='z-60'
         position="bottom-center"
         autoClose={3000}
         hideProgressBar={false}

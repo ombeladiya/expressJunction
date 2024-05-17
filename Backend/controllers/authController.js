@@ -24,6 +24,7 @@ exports.registerController = async (req, res) => {
         email: email,
         password: hashedPassword,
         mobile: mobile,
+        role: 'user'
       }).save();
       //JWT generation
       const token = await JWT.sign(
@@ -135,4 +136,76 @@ exports.getAllUsers = async (req, res, next) => {
     success: true,
     users,
   });
+};
+
+//delete user--admin
+exports.deleteUser = async (req, res, next) => {
+  try {
+    await userModel.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false
+    });
+  }
+};
+
+
+//create -user -ADmin
+
+exports.CreateUSerController = async (req, res) => {
+  try {
+    const { name, email, password, mobile } = req.body;
+
+    //check existing user
+    const existingUserm = await userModel.findOne({ mobile });
+    const existingUsere = await userModel.findOne({ email });
+    if (existingUserm || existingUsere) {
+      return res.status(409).json({
+        success: true,
+        message: "User already registered!!",
+      });
+    } else {
+      const hashedPassword = await hashPassword(password);
+      const user = await new userModel({
+        name: name,
+        email: email,
+        password: hashedPassword,
+        mobile: mobile,
+        role: 'user'
+      }).save();
+
+      res.status(201).json({
+        success: true,
+        message: "User Creatred Successfully",
+        user,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in user registartion",
+    });
+  }
+};
+
+
+//change user role--admin
+exports.changeUserRole = async (req, res, next) => {
+  try {
+    const user = await userModel.findById(req.params.id);
+    user.role = req.body.role;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Role changed successfully"
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false
+    });
+  }
 };

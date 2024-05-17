@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   sourceId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "address",
-    required: true,
+    required: true
   },
   destinationId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +28,7 @@ const orderSchema = new mongoose.Schema({
   },
   orderedAt: {
     type: Date,
+    default: Date.now
   },
   deliveredAt: {
     type: Date,

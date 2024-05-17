@@ -4,7 +4,7 @@ const {
   fetchUsersController,
   fetchCompanyController,
 } = require("../controllers/searchCompanyController");
-const { requireSignIn } = require("../middleware/authMiddleware");
+const { requireSignIn, isAdmin } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/company-listing", requireSignIn, companyListingController);
 
 //fetch all users
-router.get("/fetch-users", fetchUsersController);
+router.get("/fetch-users", requireSignIn, isAdmin("admin"), fetchUsersController);
 
 //fetch all companies
 router.get("/fetch-comapny", fetchCompanyController);

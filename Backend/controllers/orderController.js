@@ -1,7 +1,7 @@
 const Order = require("../models/orderModel");
-const CityCenter = require("../models/CityCenterModel");
 const Company = require("../models/companyModel");
-const addressModel = require("../models/addressModel");
+const userModel = require("../models/userModel");
+const companyModel = require("../models/companyModel");
 
 //palce order controller
 exports.placeOrderController = async (req, res) => {
@@ -101,7 +101,6 @@ exports.fetchAllOrdersController = async (req, res) => {
       AllOrders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders",
@@ -148,3 +147,144 @@ exports.cityCenterOrderController = async (req, res) => {
     });
   }
 };
+
+
+//delete order contorller-admin
+
+exports.deleteOrderAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Order.findByIdAndDelete(id);
+    res.status(200).json({
+      success: true,
+      message: "Order Deleted Successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in fetching orders",
+    });
+  }
+};
+
+
+//geting admin dashboard details
+exports.getAdminDashboardDetails = async (req, res) => {
+  try {
+    const orders = await Order.find({}).count();
+    const users = await userModel.find({}).count();
+    const citycenter = await companyModel.find({}).count();
+    const result = await Order.aggregate([
+      {
+        $match: { status: "Delivered" }
+      },
+      {
+        $group: {
+          _id: null,
+          totalSum: { $sum: "$price" }
+        }
+      }
+    ]);
+
+    const noofusers = await userModel.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" }
+          },
+          userCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+          "_id.day": 1
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          date: {
+            $dateFromParts: {
+              year: "$_id.year",
+              month: "$_id.month",
+              day: "$_id.day"
+            }
+          },
+          userCount: 1
+        }
+      }
+    ]);
+
+    const dayvsuser = [
+      ["Day", "Number of User"],
+      ...noofusers.map(item => [
+        new Date(item.date).getDate(),
+        item.userCount
+      ])
+    ];
+    const totalSum = result.length > 0 ? result[0].totalSum : 0;
+
+
+    const result2 = await Order.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: "$orderedAt" },
+            month: { $month: "$orderedAt" },
+            day: { $dayOfMonth: "$orderedAt" }
+          },
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+          "_id.day": 1
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          date: {
+            $dateFromParts: {
+              year: "$_id.year",
+              month: "$_id.month",
+              day: "$_id.day"
+            }
+          },
+          orderCount: 1
+        }
+      }
+    ]);
+
+    // Process the result to fit the required format
+    const dayvsorders = [
+      ["Day", "Number of Orders"],
+      ...result2.map(item => [
+        new Date(item.date).getDate(), // Extract day from date
+        item.orderCount
+      ])
+    ];
+    const data = {
+      orders, users, citycenter, revenue: totalSum, dayvsuser, dayvsorders
+    }
+    res.status(200).json({
+      success: true,
+      message: "dashboard data fetched Successfully",
+      data
+    });
+
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in fetching All data",
+    });
+  }
+}
+

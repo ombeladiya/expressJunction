@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Home, ChevronRight, ShoppingCart } from 'lucide-react'
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 const steps = ['Sender\'s Information', 'Parcel Details', 'Select Delivery Company', 'Confirmation']
 
 export function AddOrder() {
@@ -17,6 +18,7 @@ export function AddOrder() {
   const [country, setcountry] = useState('');
   const [isvalid, setIsvalid] = useState(true);
   const navigate = useNavigate();
+  const { isAuthenticated } = useSelector(state => state.auth);
 
   const getadata = async (e) => {
     setPincode(e.target.value);
@@ -54,6 +56,13 @@ export function AddOrder() {
       toast.error(err.response.data.message);
     }
   }
+
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login")
+    }
+  }, [isAuthenticated]);
 
   return (
     <div className="mx-auto w-full min-h-screen bg-slate-100 py-2">
@@ -183,6 +192,8 @@ export function AddOrder() {
                     type="number"
                     placeholder="Enter Reciever's pincode"
                     id="pincode"
+                    pattern="[0-9]{6}"
+                    title="Please enter a valid pincode"
                     value={pincode}
                     onChange={(e) => getadata(e)}
                     required
@@ -204,6 +215,7 @@ export function AddOrder() {
                     id="city"
                     value={city}
                     readOnly
+                    required
                   />
                 </div>
               </div>

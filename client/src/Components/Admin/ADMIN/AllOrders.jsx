@@ -1,65 +1,101 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Sidebar from './Sidebar';
 import { DataGrid } from '@mui/x-data-grid';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { Trash } from 'lucide-react';
 
 function AllOrders() {
-
+    const [orders, setOrders] = useState();
+    const [orderchanged, setorderchabged] = useState();
     const columns = [
-        { field: 'id', headerName: 'ID', width: 90 },
         {
-            field: 'UserID',
+            field: 'userId',
             headerName: 'UserID',
-            width: 150,
+            width: 200,
             editable: false,
         },
         {
-            field: 'CompanyID',
+            field: 'companyId',
             headerName: 'CompanyID',
-            width: 150,
+            width: 210,
             editable: false,
         },
         {
             field: 'status',
             headerName: 'status',
-            width: 110,
+            width: 170,
             editable: false,
         },
         {
-            field: 'OrderedAt',
-            headerName: 'OrderedAt',
-            width: 160,
+            field: 'totalWeight',
+            headerName: 'totalWeight',
+            width: 95,
         },
+        {
+            field: 'price',
+            headerName: 'Price',
+            width: 100,
+        },
+        {
+            field: 'orderedAt',
+            headerName: 'OrderedAt',
+            width: 200,
+        },
+        {
+            field: 'Delete',
+            headerName: 'Delete',
+            width: 50,
+            renderCell: (params) => (
+                <div className='flex gap-3'>
+                    <button className='text-red-600' onClick={() => handleDelete(params.row)}><Trash size={18} /></button>
+                </div>
+            ),
+        },
+
     ];
 
-    const rows = [
-        { id: 1, lastName: 'Snow', firstName: 'Jon', age: 14 },
-        { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 31 },
-        { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 31 },
-        { id: 4, lastName: 'Stark', firstName: 'Arya', age: 11 },
-        { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
-        { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
-        { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
-        { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-        { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
-        { id: 10, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-        { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
-        { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
-        { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
-        { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-        { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
-        { id: 10, lastName: 'Frances', firstName: 'Rossini', age: 36 }
-    ];
+    const handleDelete = async (row) => {
+        const isconfirm = confirm("Are you sure to delete this order?");
+        if (!isconfirm) {
+            return;
+        }
+        try {
+            await axios.delete(`/api/v1/orders/deleteorder/${row._id}`).then((res) => {
+                setOrders(orders.filter((el) => el !== row));
+                toast.success("User Deleted Successfully");
+                setorderchabged(Math.random());
+            }).catch(err => { toast.error(err) });
+        } catch (err) {
+            toast.error(err);
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const { data } = await axios.get('/api/v1/orders/fetchallorders');
+                setOrders(data.AllOrders);
+            } catch (err) {
+                toast.error("Error while fetching orders")
+            }
+        };
+        fetchData();
+    }, [orderchanged]);
+
+    const getRowId = (row) => row._id;
 
     return (
         <div className='mt-14 flex flex-row'>
             <Sidebar />
-            <div className='w-4/5'>
+            <div className='w-full'>
                 <h2 className="text-3xl font-bold ml-6 mt-5">All Orders</h2>
-                <div className='flex justify-center w-10/12 mt-8 ml-8'>
+                <div className='flex justify-center w-11/12 mt-8 ml-8'>
 
-                    <DataGrid
-                        rows={rows}
+                    {orders && orders[0] && <DataGrid
+                        rows={orders}
                         columns={columns}
+                        getRowId={getRowId}
                         initialState={{
                             pagination: {
                                 paginationModel: {
@@ -67,9 +103,19 @@ function AllOrders() {
                                 },
                             },
                         }}
-                        rowHeight={25}
+                        rowHeight={35}
+                        components={{
+                            header: {
+                                cell: ({ column }) => (
+                                    <div style={{ fontWeight: 'bold', fontSize: '0.8rem', lineHeight: 'normal', padding: '8px' }}>
+                                        {column.headerName}
+                                    </div>
+                                ),
+                            },
+                        }}
                         disableRowSelectionOnClick
-                    />
+                    />}
+                    {!orders && !orders[0] && <div className='text-red-500 text-xl'>No Order Found!!</div>}
                 </div>
             </div>
 

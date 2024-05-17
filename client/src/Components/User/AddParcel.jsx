@@ -1,26 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Home, ChevronRight, Package } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 function AddParcel() {
     const [elements, setElements] = useState([]);
     const navigate = useNavigate();
     const [uniqueIds, setUniqueIds] = useState([]);
+    const { isAuthenticated } = useSelector(state => state.auth);
+
     const addparceldetails = () => {
         const weights = [];
         uniqueIds && uniqueIds.forEach(uniqueId => {
             const weight = document.getElementById(`weight_${uniqueId}`).value;
             weights.push(weight);
         });
-        weights.push(document.getElementById("weight1").value)
+        weights.push(document.getElementById("weight1").value);
         let totalWeight = 0;
         weights.forEach(w => {
-            totalWeight += parseFloat(w); // Convert weight to float before summing
+            totalWeight += parseFloat(w);
         });
+
+        if (totalWeight < 100) {
+            toast.error('Total Weight should be greater than or equal to 100');
+            return;
+        }
 
         const items = weights.map((w, index) => ({
             weight: weights[index]
         }));
+
         localStorage.setItem('weight', totalWeight);
         localStorage.setItem('items', JSON.stringify(items));
         navigate('/choose-delivery-company');
@@ -41,24 +51,33 @@ function AddParcel() {
                 type="text"
                 placeholder="Parcel Description"
                 id={`description_${uniqueId}`}
-                required />
+            />
         </div>
             <div className="w-full grid-cols-1">
                 <label
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     htmlFor="firstName"
                 >
-                    Weight
+                    Weight(gm)
                 </label>
                 <input
                     className="flex h-10 w-full rounded-md border border-black/30 bg-transparent px-3 py-2 text-sm placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-black/30 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                     type="number"
                     placeholder="Enter Parcel Weight"
                     id={`weight_${uniqueId}`}
+                    min={100}
                     required />
             </div></div>;
         setElements(prevElements => [...prevElements, newElement]);
     };
+
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate("/login")
+        }
+    }, [isAuthenticated]);
+
     return (
         <div>
             <div className="mx-auto w-full min-h-screen bg-slate-100 py-2">
@@ -152,13 +171,14 @@ function AddParcel() {
                                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             htmlFor="firstName"
                                         >
-                                            Weight
+                                            Weight(gm)
                                         </label>
                                         <input
                                             className="flex h-10 w-full rounded-md border border-black/30 bg-transparent px-3 py-2 text-sm placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-black/30 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                                             type="number"
                                             placeholder="Enter Parcel Weight"
                                             id="weight1"
+                                            min={100}
                                             required />
                                     </div>
 

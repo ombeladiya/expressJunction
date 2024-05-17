@@ -10,8 +10,7 @@ const addressSchema = new mongoose.Schema({
     required: true,
   },
   email: {
-    type: String,
-    required: true,
+    type: String
   },
   city: {
     type: String,

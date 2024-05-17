@@ -4,13 +4,14 @@ import { Link, useNavigate } from "react-router-dom";
 import ReactStars from "react-rating-stars-component";
 import axios from 'axios';
 import { toast } from 'react-toastify';
-
+import { useSelector } from 'react-redux';
 
 function SelectDCompany() {
     const navigate = useNavigate();
     const [company, setCompany] = useState();
     const [isOpen, setIsOpen] = useState(false);
     const [companyId, setCompanyId] = useState();
+    const { isAuthenticated } = useSelector(state => state.auth);
 
     const toggleModal = (id) => {
         if (!isOpen) {
@@ -24,7 +25,7 @@ function SelectDCompany() {
             const sourceId = localStorage.getItem("sourceId");
             const destinationId = localStorage.getItem("destinationId");
             const items = JSON.parse(localStorage.getItem('items'));
-            const { data } = await axios.post("http://localhost:5000/api/v1/orders/place-order", { items, sourceId, destinationId, companyId });
+            const { data } = await axios.post("/api/v1/orders/place-order", { items, sourceId, destinationId, companyId });
             toast.success(data.message);
             navigate("/");
         } catch (error) {
@@ -46,19 +47,22 @@ function SelectDCompany() {
     }
 
     useEffect(() => {
+        if (!isAuthenticated) {
+            navigate("/login")
+        }
         async function getcompany() {
             try {
                 const from = localStorage.getItem("from");
                 const to = localStorage.getItem("to");
                 const weight = localStorage.getItem("weight");
-                const { data } = await axios.post("http://localhost:5000/api/v1/user/search/company-listing", { from, to, weight });
+                const { data } = await axios.post("/api/v1/user/search/company-listing", { from, to, weight });
                 setCompany(data.totalPriceByCompany);
             } catch (err) {
                 toast.error(err.response.data.message);
             }
         }
         getcompany();
-    })
+    }, [isAuthenticated])
     return (
         <div>
             <div className="mx-auto w-full min-h-screen bg-slate-100 py-2">
@@ -132,7 +136,7 @@ function SelectDCompany() {
                         <div >
                             <div className="mt-6 space-y-2 ">
                                 <div className="w-full py-3 sm:grid sm:grid-cols-2 sm:px-3 gap-4 space-y-2">
-                                    {company && company.map((cmp, key) =>
+                                    {company ? company.map((cmp, key) =>
                                         <div className='flex flex-row cursor-pointer bg-gray-100 p-2 sm:py-4 rounded-sm items-center justify-center sm:justify-start border-2 border-white hover:border-gray-300' onClick={() => toggleModal(cmp.companyId)} key={cmp.companyId}>
                                         <img
                                             className='w-20 h-16 sm:w-28 sm:h-20 mix-blend-multiply'
@@ -143,7 +147,7 @@ function SelectDCompany() {
                                                 <ReactStars {...secondExample} value={key + (cmp.totalPrice * 4 / 10)} /> <span className='text-sm'>{(key + cmp.totalPrice) * 7} reviews</span>
                                                 <p className='font-semibold text-md mt-2 sm:mt-4'>₹{cmp.totalPrice}/-</p>
                                             </div>
-                                        </div>)}
+                                        </div>) : <div className='text-rose-500'>Sorry No company providing delivery services at this location.</div>}
                                 </div>
                             </div>
                         </div>
