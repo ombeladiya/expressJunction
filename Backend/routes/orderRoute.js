@@ -35,5 +35,5 @@ router.get("/fetchordercc/:ccid", cityCenterOrderController);
 router.delete("/deleteorder/:id", requireSignIn, isAdmin('admin'), deleteOrderAdmin);
 
 //fetch orders of a city center
-router.get("/admindata", getAdminDashboardDetails);
+router.get("/admindata", requireSignIn, isAdmin('admin'), getAdminDashboardDetails);
 module.exports = router;

@@ -115,7 +115,7 @@ function AllOrders() {
                         }}
                         disableRowSelectionOnClick
                     />}
-                    {!orders && !orders[0] && <div className='text-red-500 text-xl'>No Order Found!!</div>}
+                    {(!orders || !orders[0]) && <div className='text-red-500 text-xl'>No Order Found!!</div>}
                 </div>
             </div>
 

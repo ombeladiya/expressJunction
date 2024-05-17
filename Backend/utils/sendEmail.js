@@ -86,7 +86,7 @@ const sendEmail = async (to, subject, text, name) => {
       dedicated to providing you with the best shipping experience.</p>
     <p>Feel free to explore our services and start shipping today!</p>
     <div class="button">
-    <a href="https://udaan.up.railway.app" class="explore-button">Explore Our Website</a>
+    <a href="https://expressjunction.com" class="explore-button">Explore Our Website</a>
     </div>
     <div class="footer">
       <p>Best Regards,<br> The Express-Junction Team</p>

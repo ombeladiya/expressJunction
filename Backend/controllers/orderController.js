@@ -1,13 +1,12 @@
 const Order = require("../models/orderModel");
 const Company = require("../models/companyModel");
-const userModel = require("../models/userModel");
-const companyModel = require("../models/companyModel");
+const addressModel = require("../models/addressModel");
+const { request } = require("express");
 
 //palce order controller
 exports.placeOrderController = async (req, res) => {
   try {
-    const { companyId, sourceId, destinationId, items } =
-      req.body;
+    const { uid, companyId, sourceId, destinationId, items } = req.body;
     // Calculate totalWeight from items
     const totalWeight = items.reduce((acc, item) => acc + item.weight, 0);
     const company = await Company.findById(companyId);
@@ -21,7 +20,7 @@ exports.placeOrderController = async (req, res) => {
     const totalPrice = totalWeight * company.price;
     // Create the order object
     const order = new Order({
-      userId: req.user._id,
+      userId: uid,
       companyId,
       sourceId,
       destinationId,
@@ -51,19 +50,47 @@ exports.fetchSingleOrderController = async (req, res) => {
   try {
     const { id } = req.params;
     const O = await Order.findById(id);
+    const SourceAddress = await addressModel.findById(O.sourceId);
+    const DestiAddress = await addressModel.findById(O.destinationId);
+
     if (!O) {
       return res.status(404).json({
         success: false,
         message: "No order found",
       });
     }
+
+    // Get the last object from the 'reached' array
+    const lastReach =
+      O.reached.length > 0 ? O.reached[O.reached.length - 1] : null;
+
+    let LastReached = null;
+    let center = null;
+    let data = null;
+
+    if (lastReach) {
+      LastReached = lastReach.centerId;
+      center = await CityCenter.findOne({ _id: LastReached });
+      const centerPincode = center.pincode;
+
+      const response = await fetch(
+        `https://api.postalpincode.in/pincode/${centerPincode}`
+      );
+      data = await response.json();
+    }
+
     res.status(200).json({
       success: true,
       message: "Order Found",
       O,
+      SourceAddress,
+      DestiAddress,
+      lastReach,
+      LastReached,
+      center,
+      data,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching category",
@@ -83,7 +110,6 @@ exports.fetchAllOrdersOfCompany = async (req, res) => {
       allCompanyOrders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders of a company",
@@ -91,7 +117,7 @@ exports.fetchAllOrdersOfCompany = async (req, res) => {
   }
 };
 
-//fetch all orders controller--admin 
+//fetch all orders controller--admin
 exports.fetchAllOrdersController = async (req, res) => {
   try {
     const AllOrders = await Order.find();
@@ -109,7 +135,6 @@ exports.fetchAllOrdersController = async (req, res) => {
 };
 
 //fetching all orders of a citycenter of a particular company
-
 exports.fetchOrderDestinationController = async (req, res) => {
   try {
     const { did } = req.params;
@@ -120,7 +145,6 @@ exports.fetchOrderDestinationController = async (req, res) => {
       destinationOrders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders",
@@ -129,7 +153,6 @@ exports.fetchOrderDestinationController = async (req, res) => {
 };
 
 //city center order contorller
-
 exports.cityCenterOrderController = async (req, res) => {
   try {
     const { ccid } = req.params;
@@ -140,7 +163,6 @@ exports.cityCenterOrderController = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders",
@@ -150,7 +172,6 @@ exports.cityCenterOrderController = async (req, res) => {
 
 
 //delete order contorller-admin
-
 exports.deleteOrderAdmin = async (req, res) => {
   try {
     const { id } = req.params;
@@ -163,6 +184,57 @@ exports.deleteOrderAdmin = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders",
+    });
+  }
+};
+
+//fetch all orders of single user
+
+exports.fetchUserController = async (req, res) => {
+  try {
+    const uid = await req?.user?._id;
+    console.log(req.user);
+    const userOrders = await Order.find({ userId: uid });
+    const totalOrders = userOrders.length;
+
+    res.status(200).json({
+      success: true,
+      uid,
+      userOrders,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server error in fetching user orders",
+    });
+  }
+};
+
+//cancel order controller
+
+exports.cancelOrderController = async (req, res) => {
+  try {
+    const orderId = req.params.oid;
+    const order = await Order.findOne({ _id: orderId });
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    order.status = "Cancelled";
+    await order.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Order cancelled successfully", order });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error in cancelling order",
     });
   }
 };
@@ -287,4 +359,3 @@ exports.getAdminDashboardDetails = async (req, res) => {
     });
   }
 }
-

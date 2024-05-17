@@ -22,6 +22,7 @@ import { useEffect } from 'react'
 import axios from 'axios';
 import { loadUserFailure, loadUserRequest, loadUserSuccess } from './features/UserSlice'
 import Profile from './Components/User/Profile'
+import Dashboard_user from './Components/User/Dashboard/Dashboard_user'
 function App() {
   const dispatch = useDispatch();
 
@@ -73,6 +74,7 @@ function App() {
         <Route path='/admin/allusers' element={<AllUsers />} />
         <Route path='/admin/allorders' element={<AllOrders />} />
         <Route path='/profile' element={<Profile />} />
+        <Route path='/user/dashboard' element={<Dashboard_user/>}/>
         <Route path='*' element={<PageNotFound />} />
       </Routes>
       <Footer />
