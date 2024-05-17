@@ -2,6 +2,7 @@ const Order = require("../models/orderModel");
 const CityCenter = require("../models/CityCenterModel");
 const Company = require("../models/companyModel");
 const addressModel = require("../models/addressModel");
+const { request } = require("express");
 
 //palce order controller
 exports.placeOrderController = async (req, res) => {
@@ -50,16 +51,45 @@ exports.fetchSingleOrderController = async (req, res) => {
   try {
     const { id } = req.params;
     const O = await Order.findById(id);
+    const SourceAddress = await addressModel.findById(O.sourceId);
+    const DestiAddress = await addressModel.findById(O.destinationId);
+
     if (!O) {
       return res.status(404).json({
         success: false,
         message: "No order found",
       });
     }
+
+    // Get the last object from the 'reached' array
+    const lastReach =
+      O.reached.length > 0 ? O.reached[O.reached.length - 1] : null;
+
+    let LastReached = null;
+    let center = null;
+    let data = null;
+
+    if (lastReach) {
+      LastReached = lastReach.centerId;
+      center = await CityCenter.findOne({ _id: LastReached });
+      const centerPincode = center.pincode;
+
+      const response = await fetch(
+        `https://api.postalpincode.in/pincode/${centerPincode}`
+      );
+      data = await response.json();
+    }
+
     res.status(200).json({
       success: true,
       message: "Order Found",
       O,
+      SourceAddress,
+      DestiAddress,
+      lastReach,
+      LastReached,
+      center,
+      data,
     });
   } catch (error) {
     console.log(error);
@@ -152,41 +182,49 @@ exports.cityCenterOrderController = async (req, res) => {
 
 exports.fetchUserController = async (req, res) => {
   try {
-    const uid = await req.user._id;
-    const userOrders = await Order.find({ userId: req.user._id });
+    const uid = await req?.user?._id;
+    console.log(req.user);
+    const userOrders = await Order.find({ userId: uid });
     const totalOrders = userOrders.length;
-    const cnfOrders = await Order.find({ status: "Confirmed" });
-    const ncnfOrders = await Order.find({ status: "Not-Confirmed" });
-    const reachedOrders = await Order.find({ status: "Reached" });
-    const intOrders = await Order.find({ status: "In-Transit" });
-    const cnfnum = cnfOrders.length;
-    const ncnfnum = ncnfOrders.length;
-    const reachednum = reachedOrders.length;
-    const intnum = intOrders.length;
-    const cancelledorders = await Order.find({ status: "Cancelled" });
-    const cannum = cancelledorders.length;
 
     res.status(200).json({
       success: true,
-      canNum: cannum,
-      cancelled: cancelledorders,
-      reachedN: reachednum,
-      reached: reachedOrders,
-      intNum: intnum,
-      in_trasnit: intOrders,
-      ncnfNum: ncnfnum,
-      ncnf: ncnfOrders,
-      cnfNum: cnfnum,
-      cnf: cnfOrders,
-      total_orders: totalOrders,
-      userOrders,
       uid,
+      userOrders,
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal Server error in fetching user orders",
+    });
+  }
+};
+
+//cancel order controller
+
+exports.cancelOrderController = async (req, res) => {
+  try {
+    const orderId = req.params.oid;
+    const order = await Order.findOne({ _id: orderId });
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    order.status = "Cancelled";
+    await order.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Order cancelled successfully", order });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error in cancelling order",
     });
   }
 };

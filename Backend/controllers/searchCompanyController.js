@@ -1,6 +1,8 @@
 const company = require("../models/companyModel");
 const Distance = require("pincode-distance-calculator");
 const User = require("../models/userModel");
+const CityCenter = require("../models/CityCenterModel");
+const CityCenterModel = require("../models/CityCenterModel");
 
 exports.companyListingController = async (req, res) => {
   try {
@@ -67,6 +69,27 @@ exports.fetchCompanyController = async (req, res) => {
     res.status(500).json({
       success: true,
       message: "Internal server error in fetching companies",
+    });
+  }
+};
+
+//fetch all city center
+
+exports.fetchAllCityCentersController = async (req, res) => {
+  try {
+    const ccs = await CityCenterModel.find({});
+    const ccsl = ccs.length;
+    res.status(200).json({
+      success: true,
+      message: "City Centers Fetched Successfully",
+      noOfCityCenter: ccsl,
+      ccs,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in fetching CityCenter",
     });
   }
 };

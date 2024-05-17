@@ -6,6 +6,8 @@ const {
   fetchAllOrdersController,
   fetchOrderDestinationController,
   cityCenterOrderController,
+  fetchUserController,
+  cancelOrderController,
 } = require("../controllers/orderController");
 const { requireSignIn } = require("../middleware/authMiddleware");
 
@@ -28,5 +30,10 @@ router.get("/fetchorderdest/:did", fetchOrderDestinationController);
 
 //fetch orders of a city center
 router.get("/fetchordercc/:ccid", cityCenterOrderController);
+
+router.get("/fetchhh", requireSignIn, fetchUserController);
+
+//cancel order
+router.get("/cancelOrder/:oid", cancelOrderController);
 
 module.exports = router;
