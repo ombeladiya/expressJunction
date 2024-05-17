@@ -1,5 +1,4 @@
 const Order = require("../models/orderModel");
-const CityCenter = require("../models/CityCenterModel");
 const Company = require("../models/companyModel");
 const addressModel = require("../models/addressModel");
 const { request } = require("express");
@@ -130,7 +129,6 @@ exports.fetchAllOrdersController = async (req, res) => {
       AllOrders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders",
