@@ -28,6 +28,7 @@ function Header() {
           <ul className='flex px-4 py-4'>
             <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/'>About</Link></li>
             <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/'>Contact</Link></li>
+            {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/user/dashboard'>MyOrder</Link></li>}
             {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/addorder'>AddOrder</Link></li>}
             {isAuthenticated && user.role === 'admin' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/admin/dashboard'>Dashboard</Link></li>}
             {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/profile'>Profile</Link></li>}

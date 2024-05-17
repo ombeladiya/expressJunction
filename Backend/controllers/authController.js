@@ -93,7 +93,6 @@ exports.loginController = async (req, res) => {
       user: existingUser,
     });
   } catch (error) {
-    console.log(error);
     res
       .status(500)
       .json({ success: false, message: "Internal server error in user login" });
@@ -149,35 +148,37 @@ exports.deleteUser = async (req, res, next) => {
 
 
 //create -user -ADmin
-
 exports.CreateUSerController = async (req, res) => {
   try {
     const { name, email, password, mobile } = req.body;
-
     //check existing user
     const existingUserm = await userModel.findOne({ mobile });
     const existingUsere = await userModel.findOne({ email });
+
     if (existingUserm || existingUsere) {
       return res.status(409).json({
         success: true,
         message: "User already registered!!",
       });
-    } else {
+    } 
       const hashedPassword = await hashPassword(password);
-      const user = await new userModel({
+
+    const user = new userModel({
         name: name,
         email: email,
         password: hashedPassword,
         mobile: mobile,
         role: 'user'
-      }).save();
+    });
+
+    await user.save();
 
       res.status(201).json({
         success: true,
         message: "User Creatred Successfully",
         user,
       });
-    }
+
   } catch (error) {
     res.status(500).json({
       success: false,

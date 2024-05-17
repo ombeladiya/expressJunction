@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Sidebar from './Sidebar'
 import { Chart } from "react-google-charts";
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 
 export const options = {

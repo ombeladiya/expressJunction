@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const CityCenterSchema = new mongoose.Schema({
   company: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "company",
     required: true,
   },
@@ -17,13 +17,7 @@ const CityCenterSchema = new mongoose.Schema({
   pincode: {
     type: Number,
     required: true,
-  },
-  deliveryAgentsID: [
-    {
-      type: mongoose.Types.ObjectId,
-      ref: "deliveryagents"
-    },
-  ],
+  }
 });
 
 module.exports = mongoose.model("cityCenter", CityCenterSchema);

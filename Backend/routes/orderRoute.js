@@ -8,6 +8,8 @@ const {
   cityCenterOrderController,
   deleteOrderAdmin,
   getAdminDashboardDetails,
+  fetchUserController,
+  cancelOrderController,
 } = require("../controllers/orderController");
 const { requireSignIn, isAdmin } = require("../middleware/authMiddleware");
 
@@ -21,6 +23,12 @@ router.get("/fetchOrder/:id", requireSignIn, fetchSingleOrderController);
 
 //fetch all products of a single
 router.get("/fetchcompanyorders/:cid", requireSignIn, fetchAllOrdersOfCompany);
+
+//fetch all order of a user
+router.get("/fetchhh", requireSignIn, fetchUserController);
+
+//canceling single order user
+router.get("/cancelOrder/:oid", requireSignIn, cancelOrderController);
 
 //fetch all orders
 router.get("/fetchallorders", requireSignIn, isAdmin('admin'), fetchAllOrdersController);

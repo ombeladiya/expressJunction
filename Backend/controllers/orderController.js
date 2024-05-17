@@ -193,9 +193,7 @@ exports.deleteOrderAdmin = async (req, res) => {
 exports.fetchUserController = async (req, res) => {
   try {
     const uid = await req?.user?._id;
-    console.log(req.user);
-    const userOrders = await Order.find({ userId: uid });
-    const totalOrders = userOrders.length;
+    const userOrders = await Order.find({ userId: uid }).sort({ orderedAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -203,7 +201,6 @@ exports.fetchUserController = async (req, res) => {
       userOrders,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal Server error in fetching user orders",
@@ -231,7 +228,6 @@ exports.cancelOrderController = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Order cancelled successfully", order });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       success: false,
       message: "Internal server error in cancelling order",

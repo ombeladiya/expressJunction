@@ -103,7 +103,6 @@ function AllUsers() {
                 const { data } = await axios.get('/api/v1/user/search/fetch-users');
                 setUsers(data.users);
             } catch (err) {
-                console.log(err);
                 toast.error("Error while fetching users")
             }
         };

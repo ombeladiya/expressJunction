@@ -22,9 +22,12 @@ const deliveryAgentSchema = new mongoose.Schema({
     ref: "citycenter",
     required: true,
   },
-  ordersDelivered: {
-    type: Number,
-  },
+  ordersDelivered: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "order"
+    }
+  ],
 });
 
 module.exports = mongoose.model("deliveryagents", deliveryAgentSchema);
