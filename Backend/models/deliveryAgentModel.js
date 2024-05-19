@@ -3,24 +3,24 @@ const mongoose = require("mongoose");
 const deliveryAgentSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true
   },
   email: {
     type: String,
-    required: true,
+    required: true
   },
   password: {
     type: String,
-    required: true,
+    required: true
   },
   phone: {
     type: Number,
-    required: true,
+    required: true
   },
   cityCenter: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "citycenter",
-    required: true,
+    required: true
   },
   ordersDelivered: [
     {

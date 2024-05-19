@@ -15,6 +15,6 @@ router.post("/company-listing", requireSignIn, companyListingController);
 router.get("/fetch-users", requireSignIn, isAdmin("admin"), fetchUsersController);
 
 //fetch all companies
-router.get("/fetch-comapny", fetchCompanyController);
+router.get("/fetch-comapny", requireSignIn, isAdmin("admin"), fetchCompanyController);
 
 module.exports = router;

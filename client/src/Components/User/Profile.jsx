@@ -9,7 +9,7 @@ const Profile = () => {
     const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const firstLetter = user.name ? user.name.charAt(0).toUpperCase() : '';
+    const firstLetter = user?.name ? user.name.charAt(0).toUpperCase() : '';
     const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'];
     const colorIndex = firstLetter.charCodeAt(0) % colors.length;
     const bgColor = colors[colorIndex];
@@ -45,9 +45,10 @@ const Profile = () => {
                         </div>
 
                         <div className="text-center mt-2">
-                            <h3 className="font-bold capitalize">{user.name}</h3>
-                            <p className="text-gray-600 mt-3">{user.email}</p>
-                            <span className="text-green-800 text-sm uppercase">{user.mobile}</span>
+                            <h3 className="font-bold capitalize">{user?.name}</h3>
+                            <p className="text-gray-600 mt-3">{user?.email}</p>
+                            <span className="text-green-800 text-sm uppercase">{user?.mobile}</span><br />
+                            {user?.pincode && <span className="text-green-800 text-sm"><span className='font-semibold'>Pincode :</span>{user.pincode}</span>}
                         </div>
 
                         <div className="flex justify-center space-x-3 mt-6">

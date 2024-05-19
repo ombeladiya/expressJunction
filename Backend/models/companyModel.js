@@ -8,6 +8,7 @@ const companySchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true
   },
   password: {
     type: String,
@@ -18,7 +19,7 @@ const companySchema = new mongoose.Schema({
     required: true,
   },
   regNo: {
-    type: String,
+    type: Number,
     required: true,
   },
   address: {

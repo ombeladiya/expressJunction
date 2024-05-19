@@ -10,6 +10,8 @@ const {
   getAdminDashboardDetails,
   fetchUserController,
   cancelOrderController,
+  deliverOrdersOfAgent,
+  fetchAllOrdersOfAgent,
 } = require("../controllers/orderController");
 const { requireSignIn, isAdmin } = require("../middleware/authMiddleware");
 
@@ -44,4 +46,11 @@ router.delete("/deleteorder/:id", requireSignIn, isAdmin('admin'), deleteOrderAd
 
 //fetch orders of a city center
 router.get("/admindata", requireSignIn, isAdmin('admin'), getAdminDashboardDetails);
+
+//deliver order-agent access
+router.post("/deliver/:id/:agentid", requireSignIn, isAdmin('agent'), deliverOrdersOfAgent);
+
+//get all agent's orders- citycenter access
+router.get("/orders/:id", fetchAllOrdersOfAgent);
+
 module.exports = router;

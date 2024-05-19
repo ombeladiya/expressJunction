@@ -109,3 +109,22 @@ exports.adduseraddressController = async (req, res) => {
     });
   }
 };
+
+
+exports.deleteAddress = async (req, res) => {
+  try {
+
+    await addressModel.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Address Deleted successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in saving address",
+    });
+  }
+};

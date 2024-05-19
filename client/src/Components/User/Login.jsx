@@ -13,11 +13,12 @@ export function Login() {
   const dispatch = useDispatch();
   const { loading, isAuthenticated } = useSelector(state => state.auth);
   const navigate = useNavigate();
+
   const login = async (e) => {
     e.preventDefault();
     try {
       dispatch(loginRequest());
-      const { data } = await axios.post("http://localhost:5000/api/v1/auth/login", { mobile, password });
+      const { data } = await axios.post("/api/v1/auth/login", { mobile, password });
       dispatch(loginSuccess(data.user))
       toast.success(data.message);
     } catch (error) {

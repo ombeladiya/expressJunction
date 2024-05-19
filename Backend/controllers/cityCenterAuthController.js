@@ -1,6 +1,7 @@
 const { hashPassword } = require("../helpers/authHelper");
 const CityCenter = require("../models/CityCenterModel");
 const Company = require("../models/companyModel");
+const Order = require("../models/orderModel");
 
 exports.cityCenterRegisterController = async (req, res) => {
   try {
@@ -42,10 +43,33 @@ exports.cityCenterRegisterController = async (req, res) => {
       cityCenter,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in CityCenter Registration",
     });
   }
 };
+
+
+exports.addcitycenterreached = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (order.status == 'Confirmed') {
+      order.status = 'In-Transit';
+    }
+    order.reached.push({ centerId: req.params.cityid });
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Parcel Recieved successfully"
+    });
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in CityCenter Adding in reached",
+    });
+  }
+}

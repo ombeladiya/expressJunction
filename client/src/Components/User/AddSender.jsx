@@ -36,7 +36,6 @@ export function AddSender() {
                     setIsvalid(true);
                 }
             } catch (err) {
-                console.log(err)
                 setIsvalid(false);
                 setCity('')
                 setState('');
@@ -51,40 +50,53 @@ export function AddSender() {
         setvisible(false);
     }
 
-    const setaddress = async () => {
+    const setaddress = async (e) => {
         try {
+            e.preventDefault();
             const { data } = await axios.post("/api/v1/address/add-address", { name, email, city, country, district, phoneNo: mobile, pincode, landmark: area, state });
             localStorage.setItem("sourceId", data.id);
             localStorage.setItem('from', pincode);
             navigate("/addparcel");
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error("Error while Adding Address");
         }
     }
 
     const handleChange = (key) => {
         setSelectedAddressId(key);
     };
-    const addoldaddress = () => {
+    const addoldaddress = (e) => {
+        e.preventDefault();
         localStorage.setItem('from', address[selectedAddressId].pincode);
         localStorage.setItem("sourceId", address[selectedAddressId]._id);
         navigate("/addparcel");
     }
 
+    const Deleteaddress = async (e, id) => {
+        try {
+            e.preventDefault();
+            await axios.delete(`/api/v1/address/delete/${id}`);
+            getaddress();
+        } catch (error) {
+            toast.error("Error while deleting Address");
+        }
+    }
+
+    async function getaddress() {
+        try {
+            const { data } = await axios.get("/api/v1/address/get-address");
+            if (data.address.length == 0) {
+                setvisible(false);
+            }
+            setAddress(data.address);
+        } catch (err) {
+            setvisible(false);
+        }
+    }
+
     useEffect(() => {
         if (!isAuthenticated) {
             navigate("/login")
-        }
-        async function getaddress() {
-            try {
-                const { data } = await axios.get("/api/v1/address/get-address");
-                if (data.address.length == 0) {
-                    setvisible(false);
-                }
-                setAddress(data.address);
-            } catch (err) {
-                setvisible(false);
-            }
         }
         getaddress();
     }, [isAuthenticated]);
@@ -159,10 +171,11 @@ export function AddSender() {
                     </div>
                     <div className={`${visible ? 'block' : 'hidden'}`}>
 
-                        <div className="mt-6 space-y-2">
+                        <div className="mt-6 space-y-2 relative">
                             {address && address.map((add, key) => <div key={key} className="w-full py-3 flex flex-row px-3 border-[1px] rounded-sm border-gray-500">
                                 <input type="radio" name="address" value={add._id} checked={selectedAddressId == key} onChange={() => handleChange(key)} />
                                 <div className="px-3 capitalize">{add.name} , Mo.{add.phoneNo}, {add.landmark},{add.city}, {add.district}, {add.state}, {add.country} - {add.pincode} </div>
+                                <div className="absolute right-6"><button className="text-xs border-red-500 border-[1px] px-2 py-1 rounded-sm" onClick={(e) => Deleteaddress(e, add._id)}>Delete</button></div>
                             </div>)}
                         </div>
                         <div className="sm:flex justify-end">
@@ -349,6 +362,7 @@ export function AddSender() {
                             <input
                                 type="submit"
                                 className="w-full sm:w-56 h-10 rounded-md bg-orange-600 px-3 mt-5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                                value="Next Step"
                             />                            
                         </div>
                     </form>

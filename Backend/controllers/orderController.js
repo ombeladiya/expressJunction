@@ -1,12 +1,14 @@
 const Order = require("../models/orderModel");
 const Company = require("../models/companyModel");
 const addressModel = require("../models/addressModel");
-const { request } = require("express");
-
+const userModel = require("../models/userModel");
+const CityCenter = require("../models/CityCenterModel");
+const deliveryAgentModel = require("../models/deliveryAgentModel");
+const orderModel = require("../models/orderModel");
 //palce order controller
 exports.placeOrderController = async (req, res) => {
   try {
-    const { uid, companyId, sourceId, destinationId, items } = req.body;
+    const { companyId, sourceId, destinationId, items } = req.body;
     // Calculate totalWeight from items
     const totalWeight = items.reduce((acc, item) => acc + item.weight, 0);
     const company = await Company.findById(companyId);
@@ -16,11 +18,12 @@ exports.placeOrderController = async (req, res) => {
         message: "Company Not found",
       });
     }
-    // Get city center ID from source pincode
+
+
     const totalPrice = totalWeight * company.price;
     // Create the order object
     const order = new Order({
-      userId: uid,
+      userId: req.user._id,
       companyId,
       sourceId,
       destinationId,
@@ -70,7 +73,9 @@ exports.fetchSingleOrderController = async (req, res) => {
 
     if (lastReach) {
       LastReached = lastReach.centerId;
+
       center = await CityCenter.findOne({ _id: LastReached });
+
       const centerPincode = center.pincode;
 
       const response = await fetch(
@@ -93,7 +98,7 @@ exports.fetchSingleOrderController = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Internal server error in fetching category",
+      message: error.message,
     });
   }
 };
@@ -142,7 +147,7 @@ exports.fetchOrderDestinationController = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Orders Fetched",
-      destinationOrders,
+      destinationOrders
     });
   } catch (error) {
     res.status(500).json({
@@ -241,7 +246,7 @@ exports.getAdminDashboardDetails = async (req, res) => {
   try {
     const orders = await Order.find({}).count();
     const users = await userModel.find({}).count();
-    const citycenter = await companyModel.find({}).count();
+    const citycenter = await Company.find({}).count();
     const result = await Order.aggregate([
       {
         $match: { status: "Delivered" }
@@ -355,3 +360,72 @@ exports.getAdminDashboardDetails = async (req, res) => {
     });
   }
 }
+
+
+
+//Fetching all orders of delivery Agent
+exports.fetchAllOrdersOfAgent = async (req, res) => {
+  try {
+    const user = await deliveryAgentModel.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery Agent Not found",
+      });
+    }
+
+    const orders = await Promise.all(user.ordersDelivered.map(async (oid) => {
+      return await orderModel.findById(oid);
+    }));
+    res.status(200).json({
+      success: true,
+      message: "Delivery Agent's Order fetched successfully",
+      orders
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in fetching orders of a company",
+    });
+  }
+};
+
+
+//delever order of delivery Agent
+exports.deliverOrdersOfAgent = async (req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id);
+    const user = await deliveryAgentModel.findById(req.params.agentid);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order Not found"
+      });
+    }
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery Agent Not found"
+      });
+    }
+    order.status = "Delivered";
+    order.deliveredAt = Date.now();
+    await order.save();
+
+    user.ordersDelivered.push(order._id);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Order Delivered"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

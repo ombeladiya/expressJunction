@@ -21,7 +21,7 @@ export function Signup() {
     e.preventDefault();
     try {
       dispatch(registerRequest());
-      const { data } = await axios.post("http://localhost:5000/api/v1/auth/register", { email, mobile, password, name });
+      const { data } = await axios.post("/api/v1/auth/register", { email, mobile, password, name });
       dispatch(registerSuccess(data.user))
       toast.success(data.message);
     } catch (error) {

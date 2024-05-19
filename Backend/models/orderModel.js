@@ -41,10 +41,10 @@ const orderSchema = new mongoose.Schema({
         default: Date.now,
       },
       centerId: {
-        type: mongoose.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "cityCenter",
-      },
-    },
+      }
+    }
   ],
 
   price: {

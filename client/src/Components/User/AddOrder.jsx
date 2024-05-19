@@ -48,7 +48,7 @@ export function AddOrder() {
   const saveAddress = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("http://localhost:5000/api/v1/address/set-address", { name, email, city, country, district, phoneNo: mobile, pincode, landmark: area, state });
+      const { data } = await axios.post("/api/v1/address/set-address", { name, email, city, country, district, phoneNo: mobile, pincode, landmark: area, state });
       localStorage.setItem("destinationId", data.id);
       localStorage.setItem('to', pincode);
       navigate("/addsender");

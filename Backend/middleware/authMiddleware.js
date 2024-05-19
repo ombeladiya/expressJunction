@@ -1,6 +1,6 @@
 const JWT = require("jsonwebtoken");
 const userModel = require("../models/userModel");
-// PROTECTED ROUTE TOKEN BASED
+const companyModel = require("../models/companyModel");
 
 exports.requireSignIn = async (req, res, next) => {
     try {
@@ -15,7 +15,12 @@ exports.requireSignIn = async (req, res, next) => {
             token,
             process.env.JWT_SECRET
         );
-        req.user = await userModel.findById(decode._id).select('-password');
+        const user = await userModel.findById(decode._id);
+        if (user) {
+            req.user = user;
+        } else {
+            return res.status(401).json({ success: false, message: "Access denied" });
+        }
         next();
     } catch (error) {
         res.status(401).json({ success: false, message: "Access denied" });
