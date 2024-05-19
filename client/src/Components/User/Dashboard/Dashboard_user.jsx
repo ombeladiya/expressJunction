@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import QR from '../../Layout/QR';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import Loader from '../../Layout/Loader';
 
 function Dashboard_user() {
   const [data, setData] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     fetchData();
   }, []);
@@ -21,10 +25,12 @@ function Dashboard_user() {
 
   const fetchOrderDetails = async (orderId) => {
     try {
+      setLoading(true);
       const response = await axios.get(`/api/v1/orders/fetchOrder/${orderId}`);
+      setLoading(false);
       setSelectedOrder(response.data);
     } catch (error) {
-      toast.error('Error fetching order details');
+      toast.error(error.response.data.message);
     }
   };
 
@@ -45,23 +51,39 @@ function Dashboard_user() {
         fetchData();
       }
     } catch (error) {
-      toast.error('Error while canceling order');
+      toast.error(error.response.data.message);
     }
   };
 
   function formatDate(isoString) {
     const date = new Date(isoString);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
     const year = date.getFullYear();
 
     return `${day}/${month}/${year}`;
   }
 
+  const handleDownloadPdf = () => {
+    const input = document.getElementById('invoice');
+    html2canvas(input)
+      .then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF();
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('download.pdf');
+      })
+      .catch((err) => console.error('Error generating PDF:', err));
+  };
+
   return (
-    <div className='mt-20 min-h-screen'>
+    <div className='mt-20 min-h-screen w-full'>
+      {loading && <div className='absolute top-0 left-0 w-full h-full mt-14 flex justify-center items-center'> <Loader /></div>}
       <h2 className='font-semibold text-center text-xl text-pretty'>My Orders</h2>
-      {data && <table className="min-w-full divide-y divide-gray-200 mt-3">
+      {data && !loading && <table className="min-w-full divide-y divide-gray-200 mt-3">
         <thead className="bg-orange-500">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Weight</th>
@@ -73,18 +95,18 @@ function Dashboard_user() {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data && data.map(item => (
+          {data && !loading && data.map(item => (
             <tr key={item?._id}>
-              <td className="px-6 py-4 whitespace-nowrap">{item.totalWeight}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{item.price}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{item.status}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{formatDate(item.orderedAt)}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-2 whitespace-nowrap">{item.totalWeight}</td>
+              <td className="px-6 py-2 whitespace-nowrap">{item.price}</td>
+              <td className="px-6 py-2 whitespace-nowrap">{item.status}</td>
+              <td className="px-6 py-2 whitespace-nowrap">{formatDate(item.orderedAt)}</td>
+              <td className="px-6 py-2 whitespace-nowrap">
                 <button className="bg-gray-200 hover:bg-gray-400  py-2 px-4 rounded-sm text-sm" onClick={() => handleInfoClick(item._id)}>
                   Info
                 </button>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-6 py-2 whitespace-nowrap">
                 <button
                   className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-sm text-sm disabled:bg-red-300"
                   onClick={() => handleCancelClick(item._id)}
@@ -100,6 +122,7 @@ function Dashboard_user() {
       </table>}
       {!data && <div className='mt-5 text-rose-500 text-center text-2xl'>No Any Orders!!</div>}
       {/* Popup/Modal Component */}
+
       {selectedOrder && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -108,30 +131,36 @@ function Dashboard_user() {
             </div>
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-16 sm:align-middle sm:max-w-xl sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-10 sm:pb-4">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-10 sm:pb-4" id='invoice'>
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">Order Details</h3>
+                    <h3 className="text-lg leading-6 font-bold text-gray-900">Order Details</h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500"><b>Order ID:</b> {selectedOrder?.O?._id}</p>
-                      <p className='text-sm text-gray-500'><b>From:</b> <br />
+                      <p className="text-sm "><b>Order ID:</b> {selectedOrder?.O?._id}</p><br />
+                      {selectedOrder?.SourceAddress ? <p className='text-sm'><b>From:</b> <br />
+
                         {selectedOrder?.SourceAddress?.landmark}, {selectedOrder?.SourceAddress?.city}, {selectedOrder?.SourceAddress?.state},<br />
                         {selectedOrder?.SourceAddress?.country}, {selectedOrder?.SourceAddress?.pincode}
+                      </p> : <p className='text-sm'>From Address deleted</p>}<br />
+                      <p className='text-sm '><b>To:</b> <br />
+                        <b>{selectedOrder?.DestiAddress?.name}</b> <br />{selectedOrder?.DestiAddress?.landmark}, {selectedOrder?.DestiAddress?.city}, {selectedOrder?.DestiAddress?.state},<br />
+                        {selectedOrder?.DestiAddress?.country}, {selectedOrder?.DestiAddress?.pincode}, Mo: <b>{selectedOrder?.DestiAddress?.phoneNo}</b> 
                       </p>
-                      <p className='text-sm text-gray-500'><b>To:</b> <br />
-                        {selectedOrder?.DestiAddress?.landmark}, {selectedOrder?.DestiAddress?.city}, {selectedOrder?.DestiAddress?.state},<br />
-                        {selectedOrder?.DestiAddress?.country}, {selectedOrder?.DestiAddress?.pincode}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        <b>Last Reached:</b> {selectedOrder?.O?.status === "Reached" ? "Reached" : selectedOrder?.O?.status === "Cancelled" ? "Cancelled" : selectedOrder?.data?.[0]?.PostOffice?.[0]?.District}
-                      </p>
+                      {selectedOrder?.O?.status !== 'Not-Confirmed' && selectedOrder?.O?.status !== 'Confirmed' && <p className="text-sm"><br />
+                        <b>Last Reached:</b> {selectedOrder?.O?.status === "Delivered" ? "Delivered" : (selectedOrder?.O?.status === "Cancelled" ? "Cancelled" : selectedOrder?.data?.[0]?.PostOffice?.[0]?.District)}
+                      </p>}
                     </div>
                   </div>
+                  <div className='w-64'><QR initialValue={JSON.stringify({ _id: selectedOrder.O._id })} /></div>
                 </div>
               </div>
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
                 <button onClick={() => setSelectedOrder(null)} type="button" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-orange-500 text-base font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:ml-3 sm:w-auto sm:text-sm">
                   Close
+                </button>
+                <button onClick={handleDownloadPdf} type="button" className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-zinc-300 text-base font-medium hover:text-white hover:bg-zinc-400 focus:outline-none focus:ring-2 focus:ring-offset-2 text-black focus:ring-black sm:ml-3 sm:w-auto sm:text-sm">
+                  Download Invoice
                 </button>
               </div>
             </div>

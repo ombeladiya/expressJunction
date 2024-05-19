@@ -27,7 +27,7 @@ function SelectDCompany() {
             const items = JSON.parse(localStorage.getItem('items'));
             const { data } = await axios.post("/api/v1/orders/place-order", { items, sourceId, destinationId, companyId });
             toast.success(data.message);
-            navigate("/");
+            navigate("/user/dashboard");
         } catch (error) {
             toast.error(error.response.data.message);
         }
@@ -144,7 +144,7 @@ function SelectDCompany() {
                                                 alt={cmp.companyName} />
                                         <div className='px-4'>
                                                 <h2 className='text-sm sm:text-md font-semibold'>{cmp.companyName}</h2>
-                                                <ReactStars {...secondExample} value={key + (cmp.totalPrice * 4 / 10)} /> <span className='text-sm'>{(key + cmp.totalPrice) * 7} reviews</span>
+                                                <ReactStars {...secondExample} value={cmp.avgRating} /> <span className='text-sm'>{(key + cmp.totalPrice) * 7} reviews</span>
                                                 <p className='font-semibold text-md mt-2 sm:mt-4'>₹{cmp.totalPrice}/-</p>
                                             </div>
                                         </div>) : <div className='text-rose-500'>Sorry No company providing delivery services at this location.</div>}

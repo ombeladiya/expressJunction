@@ -28,9 +28,13 @@ function Header() {
           <ul className='flex px-4 py-4'>
             <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/'>About</Link></li>
             <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/'>Contact</Link></li>
+            {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/citycenter/scanner'>Add Parcel</Link></li>}
             {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/user/dashboard'>MyOrder</Link></li>}
             {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/addorder'>AddOrder</Link></li>}
             {isAuthenticated && user.role === 'admin' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/admin/dashboard'>Dashboard</Link></li>}
+            {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/citycenter/dashboard'>Dashboard</Link></li>}
+            {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/agent/dashboard'>Dashboard</Link></li>}
+            {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/agent/scanner'>Scanner</Link></li>}
             {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/profile'>Profile</Link></li>}
 
             {!isAuthenticated && <li className='mx-2 sm:mx-4 -my-1 text-sm'><Link to='/login'> <button

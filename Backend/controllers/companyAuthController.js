@@ -1,4 +1,4 @@
-const company = require("../models/companyModel");
+const companyMOdel = require("../models/companyModel.js");
 const { hashPassword, comparePassword } = require("../helpers/authHelper.js");
 const CityCenter = require("../models/CityCenterModel");
 // const Order = require("../models/OrderModel");
@@ -6,7 +6,6 @@ const JWT = require("jsonwebtoken");
 const orderModel = require("../models/orderModel.js");
 
 //register controller
-
 exports.companyRegisterController = async (req, res) => {
   try {
     const {
@@ -18,12 +17,14 @@ exports.companyRegisterController = async (req, res) => {
       address,
       mobile,
       price,
-      pincodes,
+      // pincodes,
       accountNo,
       IFSC,
     } = req.body;
 
-    const existingUser = await company.findOne({ email });
+    // let stringArray = pincodes.split(',');
+    // let intArray = stringArray.map(Number);
+    const existingUser = await companyMOdel.findOne({ email });
 
     if (existingUser) {
       return res.status(409).json({
@@ -32,7 +33,7 @@ exports.companyRegisterController = async (req, res) => {
       });
     } else {
       const hashedPassword = await hashPassword(password);
-      const comp = await new company({
+      const comp = await new companyMOdel({
         name,
         password: hashedPassword,
         email,
@@ -41,7 +42,7 @@ exports.companyRegisterController = async (req, res) => {
         address,
         mobile,
         price,
-        pincodes,
+        // pincodes: intArray,
         accountNo,
         IFSC,
       }).save();
@@ -53,7 +54,6 @@ exports.companyRegisterController = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: true,
       message: "Internal server error in company registration",
@@ -65,11 +65,11 @@ exports.companyRegisterController = async (req, res) => {
 
 exports.companyLoginController = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const existingCompany = await company.findOne({ email });
+    const { mobile, password } = req.body;
+    const existingCompany = await companyMOdel.findOne({ email: mobile });
 
     if (!existingCompany) {
-      return res.status(200).message({
+      return res.status(401).json({
         success: false,
         message: "Invalid Username or Password",
       });
@@ -78,7 +78,7 @@ exports.companyLoginController = async (req, res) => {
     const match = await comparePassword(password, existingCompany.password);
 
     if (!match) {
-      return res.status(200).json({
+      return res.status(401).json({
         success: false,
         message: "Invalid Username or Password",
       });
@@ -92,13 +92,19 @@ exports.companyLoginController = async (req, res) => {
       }
     );
 
+    res.cookie("token", token, {
+      maxAge: 259200000,
+      httpOnly: true,
+    });
+
+    existingCompany.role = "company";
+
     res.status(200).json({
       success: true,
       message: "Company Login Successful",
-      token,
+      existingCompany,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in company login",
@@ -113,7 +119,7 @@ exports.companyRatingController = async (req, res) => {
     const companyId = req.params.companyId;
     const { rating, comment } = req.body;
     // Find the company by its ID
-    const company = await Company.findById(companyId);
+    const company = await companyMOdel.findById(companyId);
 
     if (reviews.length === 0) {
       return 0; // If there are no reviews yet, return 0
@@ -133,7 +139,6 @@ exports.companyRatingController = async (req, res) => {
 
     res.status(200).json({ message: "Rating added successfully" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in updating rating",
@@ -141,4 +146,17 @@ exports.companyRatingController = async (req, res) => {
   }
 };
 
-//company dashboard controller
+//company delete - Admin
+
+exports.DeleteCompany = async (req, res) => {
+  try {
+    await companyMOdel.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: "Company Deleted successfully" });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error in updating rating",
+    });
+  }
+};

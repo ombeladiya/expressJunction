@@ -3,16 +3,18 @@ const Company = require("../models/companyModel");
 const addressModel = require("../models/addressModel");
 const userModel = require("../models/userModel");
 const companyModel = require("../models/companyModel");
-const { request, response } = require("express");
 const CityCenterModel = require("../models/CityCenterModel");
 const fetch = require("node-fetch");
-const orderModel = require("../models/orderModel");
+// const orderModel = require("../models/orderModel");
 const mongoose = require("mongoose");
 
+const CityCenter = require("../models/CityCenterModel");
+const deliveryAgentModel = require("../models/deliveryAgentModel");
+const orderModel = require("../models/orderModel");
 //palce order controller
 exports.placeOrderController = async (req, res) => {
   try {
-    const { uid, companyId, sourceId, destinationId, items } = req.body;
+    const { companyId, sourceId, destinationId, items } = req.body;
     // Calculate totalWeight from items
     const totalWeight = items.reduce((acc, item) => acc + item.weight, 0);
     const company = await Company.findById(companyId);
@@ -22,11 +24,11 @@ exports.placeOrderController = async (req, res) => {
         message: "Company Not found",
       });
     }
-    // Get city center ID from source pincode
+
     const totalPrice = totalWeight * company.price;
     // Create the order object
     const order = new Order({
-      userId: uid,
+      userId: req.user._id,
       companyId,
       sourceId,
       destinationId,
@@ -81,6 +83,11 @@ exports.fetchSingleOrderController = async (req, res) => {
       try {
         LastReached = lastReach.centerId;
         center = await CityCenterModel.findOne({ _id: LastReached });
+        LastReached = lastReach.centerId;
+
+        center = await CityCenter.findOne({ _id: LastReached });
+
+        const centerPincode = center.pincode;
 
         if (!center) {
           console.error(
@@ -93,7 +100,6 @@ exports.fetchSingleOrderController = async (req, res) => {
           });
         }
 
-        const centerPincode = center.pincode;
         console.log("Fetching data for pincode:", centerPincode);
         const response = await fetch(
           `https://api.postalpincode.in/pincode/${centerPincode}`
@@ -146,6 +152,7 @@ exports.fetchSingleOrderController = async (req, res) => {
       success: false,
       message: "Internal server error in fetching order",
       error: error.message,
+      message: error.message,
     });
   }
 };
@@ -295,7 +302,7 @@ exports.getAdminDashboardDetails = async (req, res) => {
   try {
     const orders = await Order.find({}).count();
     const users = await userModel.find({}).count();
-    const citycenter = await companyModel.find({}).count();
+    const citycenter = await Company.find({}).count();
     const result = await Order.aggregate([
       {
         $match: { status: "Delivered" },
@@ -457,71 +464,166 @@ exports.deleteCenterController = async (req, res) => {
       message: "Internal Server Error in Deleting Center",
     });
   }
+
+  //Fetching all orders of delivery Agent
+  exports.fetchAllOrdersOfAgent = async (req, res) => {
+    try {
+      const user = await deliveryAgentModel.findById(req.params.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Delivery Agent Not found",
+        });
+      }
+
+      const orders = await Promise.all(
+        user.ordersDelivered.map(async (oid) => {
+          return await orderModel.findById(oid);
+        })
+      );
+      res.status(200).json({
+        success: true,
+        message: "Delivery Agent's Order fetched successfully",
+        orders,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Internal server error in fetching orders of a company",
+      });
+    }
+  };
+
+  //change order status
+
+  exports.changeOrderStatus = async (req, res, next) => {
+    try {
+      const order = await orderModel.findById(req.params.id);
+      order.status = req.body.status;
+      await order.save();
+      res.status(200).json({
+        success: true,
+        message: "Status changed successfully",
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        success: false,
+      });
+    }
+  };
+
+  //company dashboard
+
+  exports.companyDashboard = async (req, res) => {
+    try {
+      const companyId = await req.user.CompanyId;
+
+      // Number of city centers
+      const cityCenterCount = await CityCenterModel.countDocuments({
+        company: companyId,
+      });
+
+      // Total orders
+      const totalOrders = (await orderModel.find({ companyId: companyId }))
+        .length;
+
+      // Orders with status "Reached"
+      const reachedOrdersCount = await Order.countDocuments({
+        companyId,
+        status: "Reached",
+      });
+
+      // Total revenue
+      const totalRevenueResult = await Order.aggregate([
+        { $match: { companyId: new mongoose.Types.ObjectId(companyId) } },
+        { $group: { _id: null, totalRevenue: { $sum: "$price" } } },
+      ]);
+
+      const totalRevenue =
+        totalRevenueResult.length > 0 ? totalRevenueResult[0].totalRevenue : 0;
+
+      res.status(200).json({
+        success: true,
+        data: {
+          cityCenterCount,
+          totalOrders,
+          reachedOrdersCount,
+          totalRevenue,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  };
+
+  //delever order of delivery Agent
+  exports.deliverOrdersOfAgent = async (req, res) => {
+    try {
+      const order = await orderModel.findById(req.params.id);
+      const user = await deliveryAgentModel.findById(req.params.agentid);
+
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: "Order Not found",
+        });
+      }
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Delivery Agent Not found",
+        });
+      }
+      order.status = "Delivered";
+      order.deliveredAt = Date.now();
+      await order.save();
+
+      user.ordersDelivered.push(order._id);
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Order Delivered",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
 };
 
-//change order status
-
-exports.changeOrderStatus = async (req, res, next) => {
+//Fetching all orders of delivery Agent
+exports.fetchAllOrdersOfAgent = async (req, res) => {
   try {
-    const order = await orderModel.findById(req.params.id);
-    order.status = req.body.status;
-    await order.save();
+    const user = await deliveryAgentModel.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery Agent Not found",
+      });
+    }
+
+    const orders = await Promise.all(
+      user.ordersDelivered.map(async (oid) => {
+        return await orderModel.findById(oid);
+      })
+    );
     res.status(200).json({
       success: true,
-      message: "Status changed successfully",
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      success: false,
-    });
-  }
-};
-
-//company dashboard
-
-exports.companyDashboard = async (req, res) => {
-  try {
-    const companyId = await req.user.CompanyId;
-
-    // Number of city centers
-    const cityCenterCount = await CityCenterModel.countDocuments({
-      company: companyId,
-    });
-
-    // Total orders
-    const totalOrders = (await orderModel.find({ companyId: companyId }))
-      .length;
-
-    // Orders with status "Reached"
-    const reachedOrdersCount = await Order.countDocuments({
-      companyId,
-      status: "Reached",
-    });
-
-    // Total revenue
-    const totalRevenueResult = await Order.aggregate([
-      { $match: { companyId: new mongoose.Types.ObjectId(companyId) } },
-      { $group: { _id: null, totalRevenue: { $sum: "$price" } } },
-    ]);
-
-    const totalRevenue =
-      totalRevenueResult.length > 0 ? totalRevenueResult[0].totalRevenue : 0;
-
-    res.status(200).json({
-      success: true,
-      data: {
-        cityCenterCount,
-        totalOrders,
-        reachedOrdersCount,
-        totalRevenue,
-      },
+      message: "Delivery Agent's Order fetched successfully",
+      orders,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: "Internal server error in fetching orders of a company",
     });
   }
 };

@@ -2,8 +2,8 @@ const userModel = require("../models/userModel.js");
 const { hashPassword, comparePassword } = require("../helpers/authHelper.js");
 const JWT = require("jsonwebtoken");
 const sendMail = require("../utils/sendEmail.js");
-//Register Controller
 
+//Register Controller
 exports.registerController = async (req, res) => {
   try {
     const { name, email, password, mobile } = req.body;
@@ -18,11 +18,11 @@ exports.registerController = async (req, res) => {
         message: "User already registered please login",
       });
     } else {
-      // const hashedPassword = await hashPassword(password);
+      const hashedPassword = await hashPassword(password);
       const user = await new userModel({
         name: name,
         email: email,
-        password: password,
+        password: hashedPassword,
         mobile: mobile,
         role: "user",
       }).save();
@@ -65,8 +65,8 @@ exports.loginController = async (req, res) => {
       });
     }
 
-    // const match = await comparePassword(password, existingUser.password);
-    if (password != existingUser.password) {
+    const match = await comparePassword(password, existingUser.password);
+    if (!match) {
       return res.status(401).json({
         success: false,
         message: "Invalid username or password",
@@ -100,7 +100,7 @@ exports.loginController = async (req, res) => {
 };
 
 exports.getUserDetails = async (req, res, next) => {
-  const user = await userModel.findById(req.user._id).select("-password");
+  let user = await userModel.findById(req.user._id);
 
   res.status(200).json({
     success: true,

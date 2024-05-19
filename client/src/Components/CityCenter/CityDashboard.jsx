@@ -1,46 +1,48 @@
-import React, { useEffect, useState } from 'react'
-import Sidebar from './Sidebar';
+import React from 'react'
+import { useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
-import { Trash, FilePenLine } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
-function AllUsers() {
+function CityDashboard() {
     const [users, setUsers] = useState();
     const [isOpen, setisOpen] = useState(false);
     const [mobile, setMobile] = useState();
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const [name, setName] = useState();
-    const [isUopen, setUopen] = useState(false);
-    const [role, setRole] = useState('admin');
-    const [userid, setuserid] = useState();
     const [userchanged, setuserchanged] = useState();
+    const navigate = useNavigate();
+    const { isAuthenticated, user } = useSelector((state) => state.auth)
 
     const columns = [
-        { field: '_id', headerName: 'ID', width: 230 },
+        { field: '_id', headerName: 'ID', width: 280 },
         {
             field: 'name',
             headerName: 'Name',
             width: 150,
-            editable: false,
+            editable: false
         },
         {
             field: 'email',
             headerName: 'Email',
             width: 280,
-            editable: false,
+            editable: false
         },
         {
-            field: 'mobile',
+            field: 'phone',
             headerName: 'Mobile',
-            width: 150,
-            editable: false,
+            width: 200,
+            editable: false
         },
         {
-            field: 'role',
-            headerName: 'Role',
-            width: 120,
+            field: 'deliveredOrderCount',
+            headerName: 'Order Delivered',
+            width: 200,
+            editable: false
         },
         {
             field: 'actions',
@@ -48,8 +50,7 @@ function AllUsers() {
             width: 80,
             renderCell: (params) => (
                 <div className='flex gap-3'>
-                    <button onClick={() => handleEdit(params.row)}><FilePenLine size={18} /></button>
-                    <button className='text-red-600' onClick={() => handleDelete(params.row)}><Trash size={18} /></button>
+                    <button className='text-red-600 flex' onClick={() => handleDelete(params.row)}><Trash className='mr-1' size={18} />Delete</button>
                 </div>
             ),
         },
@@ -58,41 +59,26 @@ function AllUsers() {
     const createuser = async (e) => {
         try {
             e.preventDefault();
-            const { data } = await axios.post('/api/v1/auth/create', { email, password, name, mobile });
+            const { data } = await axios.post('/api/v1/deliveryAgent/register', { email, password, name, phone: mobile, cityCenter: user.cityId });
             setisOpen(!isOpen);
             setuserchanged(Math.random());
             toast.success(data.message);
         } catch (err) {
-            toast.error("User Aleready Exists");
+            toast.error(err.response.data.message);
         }
     }
 
-    const handleEdit = (row) => {
-        setuserid(row._id);
-        setUopen(!isUopen);
-    };
-    const changerole = async (e) => {
-        try {
-            e.preventDefault();
-            const { data } = await axios.post(`/api/v1/auth/change-role/${userid}`, { role });
-            setUopen(!isUopen);
-            setuserchanged(Math.random());
-            toast.success(data.message);
-        } catch (err) {
-            toast.error("Error while changing ROle");
-        }
-    }
     const handleDelete = async (row) => {
         const isconfirm = confirm("Are you sure to delete this user?");
         if (!isconfirm) {
             return;
         }
         try {
-            await axios.delete(`/api/v1/auth/delete/${row._id}`).then((res) => {
+            await axios.delete(`/api/v1/deliveryAgent/agent/${row._id}`).then((res) => {
                 setUsers(users.filter((el) => el !== row));
-                toast.success("User Deleted Successfully");
+                toast.success(res.data.message);
                 setuserchanged(Math.random());
-            }).catch(err => { toast.error(err) });
+            }).catch(err => { toast.error(err.response.data.message) });
         } catch (err) {
             toast.error(err);
         }
@@ -101,26 +87,27 @@ function AllUsers() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const { data } = await axios.get('/api/v1/user/search/fetch-users');
+                const { data } = await axios.get(`/api/v1/deliveryAgent/agents/${user.cityId}`);
                 setUsers(data.users);
             } catch (err) {
-                toast.error("Error while fetching users")
+                toast.error(err.response.data.message);
             }
         };
         fetchData();
-    }, [userchanged]);
+        if (!isAuthenticated) {
+            navigate('/login');
+        }
+    }, [userchanged, isAuthenticated]);
 
 
     const getRowId = (row) => row._id;
 
     return (
-        <div className='mt-14 flex flex-row'>
-            <Sidebar />
+        <div className='mt-14 flex flex-row min-h-screen'>
             <div className='w-full'>
-                <h2 className="text-3xl font-bold ml-6 mt-5">All Users</h2>
+                <h2 className="text-3xl font-bold ml-6 mt-5">All Delivery Agents</h2>
                 <div className='flex justify-center w-11/12 mt-8 ml-8'>
-
-                    {users && <DataGrid
+                    {users && users[0] && <DataGrid
                         rows={users}
                         columns={columns}
                         getRowId={getRowId}
@@ -143,12 +130,12 @@ function AllUsers() {
                         }}
                         disableRowSelectionOnClick
                     />}
-                    {!users && <div className='text-red-500 text-xl'>No User Found!!</div>}
+                    {(!users || !users[0]) && <div className='text-red-500 text-xl'>No Delivery Agent Found!!</div>}
                 </div>
                 <div className='flex justify-end w-10/12 mt-8 ml-8'>
                     <button className="border-red-500 justify-end border-[0.8px] hover:border-b-4 px-4 py-1 rounded-md block text-sm text-center"
                         onClick={() => setisOpen(!isOpen)}
-                    >Add New User</button>
+                    >Add New Delivery Agent</button>
                 </div>
                 {isOpen && <div className='w-screen bg-white h-screen absolute flex top-0 left-0 justify-center items-center'>
                     <div className="overflow-y-auto   overflow-x-hidden justify-center items-center w-1/2 md:inset-0 h-[calc(100%-1rem)] max-h-full">
@@ -249,57 +236,8 @@ function AllUsers() {
                                             </div>
                                         </div>
                                         <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                                            <button type="submit" className="text-white bg-orange-500  font-medium rounded-md text-sm px-5 py-2.5 text-center hover:opacity-75">ADD</button>
+                                            <button type="submit" className="text-white bg-orange-500  font-medium rounded-md text-sm px-5 py-2.5 text-center hover:opacity-75">Register</button>
                                             <button type="button" className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" onClick={() => setisOpen(!isOpen)}>Cancel</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>}
-                {isUopen && <div className='w-screen bg-white h-screen absolute flex top-0 left-0 justify-center items-center'>
-                    <div className="overflow-y-auto   overflow-x-hidden justify-center items-center w-1/3 md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                        <div className="relative p-4 mt-12 w-full max-w-2xl max-h-full">
-                            <div className="relative bg-white z-40 rounded-lg shadow">
-                                <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                                    <h3 className="text-xl font-semibold text-gray-900 ">
-                                        Change Role
-                                    </h3>
-                                    <button onClick={() => setUopen(!isUopen)} type="button" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="default-modal">
-                                        <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                        </svg>
-                                        <span className="sr-only">Close modal</span>
-                                    </button>
-                                </div>
-
-                                <div className="p-3 space-y-3">
-                                    <form onSubmit={changerole}>
-                                        <div className="mx-auto my-4 max-w-4xl md:my-2">
-                                            <div className="overflow-hidden p-8 mt-0 sm:mt-3">
-                                                <div className="mt-2 gap-1 space-y-1 sm:grid sm:grid-cols-1 md:grid-cols-1 sm:space-y-0">
-                                                    <div className="w-full">
-                                                        <label
-                                                            className="text-sm mb-1 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                            htmlFor="role"
-                                                        >
-                                                            Role
-                                                        </label>
-                                                        <select name="role" id="role" className="flex h-10 w-full rounded-md border border-black/30 bg-transparent px-3 py-2 text-sm placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-black/30 focus:ring-offset-1"
-                                                            onChange={(e) => setRole(e.target.value)}
-                                                            value={role}
-                                                        >
-                                                            <option value="admin" className="flex h-10 w-full">Admin</option>
-                                                            <option value="user" className="flex h-10 w-full">User</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                                                <button type="submit" className="text-white bg-orange-500  font-medium rounded-md text-sm px-5 py-2.5 text-center hover:opacity-75">Change</button>
-                                                <button type="button" className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" onClick={() => setUopen(!isUopen)}>Cancel</button>
-                                            </div>
                                         </div>
                                     </form>
                                 </div>
@@ -312,4 +250,4 @@ function AllUsers() {
     )
 }
 
-export default AllUsers
+export default CityDashboard

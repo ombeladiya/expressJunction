@@ -10,6 +10,8 @@ const {
   getAdminDashboardDetails,
   fetchUserController,
   cancelOrderController,
+  deliverOrdersOfAgent,
+  fetchAllOrdersOfAgent,
   getCityCenter,
   deleteCenterController,
   changeOrderStatus,
@@ -86,5 +88,16 @@ router.get(
   isAdmin("company"),
   companyDashboard
 );
+
+//deliver order-agent access
+router.post(
+  "/deliver/:id/:agentid",
+  requireSignIn,
+  isAdmin("agent"),
+  deliverOrdersOfAgent
+);
+
+//get all agent's orders- citycenter access
+router.get("/orders/:id", fetchAllOrdersOfAgent);
 
 module.exports = router;

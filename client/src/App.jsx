@@ -8,7 +8,7 @@ import Home from './Components/User/Home'
 import AddOrder from './Components/User/AddOrder'
 import AddSender from './Components/User/AddSender'
 import Dashboard from './Components/Admin/ADMIN/Dashboard'
-import Revenue from './Components/Admin/ADMIN/Revenue'
+import CompanyLogin from './Components/Company/Login'
 import PageNotFound from './Components/Layout/PageNotFound'
 import AddParcel from './Components/User/AddParcel'
 import AllUsers from './Components/Admin/ADMIN/AllUsers'
@@ -17,7 +17,7 @@ import SelectDCompany from './Components/User/SelectDCompany'
 import Confirmation from './Components/User/Confirmation'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
 import axios from 'axios';
 import { loadUserFailure, loadUserRequest, loadUserSuccess } from './features/UserSlice'
@@ -26,6 +26,12 @@ import Dashboard_user from './Components/User/Dashboard/Dashboard_user'
 import Company_dashboard from './Components/Company/Company_dashboard'
 import Center from './Components/Company/Center'
 import Comp_orders from './Components/Company/Comp_orders'
+import AllCompany from './Components/Admin/ADMIN/AllCompany'
+import QrScanner from './Components/CityCenter/QrScanner'
+import CityDashboard from './Components/CityCenter/CityDashboard'
+import AgentDashboard from './Components/Admin/DeliveryAgent/AgentDashboard'
+import AgentScanner from './Components/Admin/DeliveryAgent/AgentScanner'
+
 function App() {
   const dispatch = useDispatch();
 
@@ -73,14 +79,19 @@ function App() {
         <Route path='/choose-delivery-company' element={<SelectDCompany />} />
         <Route path='/confirm-order' element={<Confirmation />} />
         <Route path='/admin/dashboard' element={<Dashboard />} />
-        <Route path='/admin/revenue' element={<Revenue />} />
+        <Route path='/admin/allcompany' element={<AllCompany />} />
         <Route path='/admin/allusers' element={<AllUsers />} />
         <Route path='/admin/allorders' element={<AllOrders />} />
         <Route path='/profile' element={<Profile />} />
+        <Route path='/citycenter/scanner' element={<QrScanner />} />
         <Route path='/user/dashboard' element={<Dashboard_user/>}/>
         <Route path='/company/dashboard' element={<Company_dashboard/>}/>
         <Route path='/company/City-Centers' element={<Center/>}/>
         <Route path='/company/Orders' element={<Comp_orders/>}/>
+        <Route path='/company/login' element={<CompanyLogin />} />
+        <Route path='/citycenter/dashboard' element={<CityDashboard />} />
+        <Route path='/agent/dashboard' element={<AgentDashboard />} />
+        <Route path='/agent/scanner' element={<AgentScanner />} />
         <Route path='*' element={<PageNotFound />} />
       </Routes>
       <Footer />

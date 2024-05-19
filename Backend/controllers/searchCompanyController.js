@@ -54,7 +54,6 @@ exports.fetchUsersController = async (req, res) => {
 };
 
 //fetch all companies
-
 exports.fetchCompanyController = async (req, res) => {
   try {
     const companies = await company.find();
@@ -64,7 +63,6 @@ exports.fetchCompanyController = async (req, res) => {
       companies,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: true,
       message: "Internal server error in fetching companies",
@@ -73,7 +71,6 @@ exports.fetchCompanyController = async (req, res) => {
 };
 
 //fetch all city center
-
 exports.fetchAllCityCentersController = async (req, res) => {
   try {
     const ccs = await CityCenterModel.find({});
@@ -85,7 +82,6 @@ exports.fetchAllCityCentersController = async (req, res) => {
       ccs,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching CityCenter",
