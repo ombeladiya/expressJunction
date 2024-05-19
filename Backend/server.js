@@ -9,7 +9,7 @@ const orderRoute = require("./routes/orderRoute.js");
 const addressRoute = require("./routes/addressRoute.js");
 const deliveryAgentsRoute = require("./routes/deliveryAgentsRoute.js");
 const cors = require("cors");
-const path = require('path');
+const path = require("path");
 const cookieParser = require("cookie-parser");
 //database config
 connectDB();
@@ -29,7 +29,6 @@ app.use("/api/v1/user/search", searchCompanyRoute);
 app.use("/api/v1/orders", orderRoute);
 app.use("/api/v1/address", addressRoute);
 app.use("/api/v1/deliveryAgent", deliveryAgentsRoute);
-
 
 app.use(express.static(path.join(__dirname, "./dist")));
 

@@ -73,7 +73,6 @@ router.get("/getCenter/:CompID", requireSignIn, getCityCenter);
 router.delete("/deleteCenter/:cid", deleteCenterController);
 
 // change order status
-
 router.post(
   "/change-status/:id",
   requireSignIn,
@@ -81,7 +80,7 @@ router.post(
   changeOrderStatus
 );
 
-//company dashboard
+// company dashboard
 router.get(
   "/dashboardData",
   requireSignIn,
@@ -89,7 +88,7 @@ router.get(
   companyDashboard
 );
 
-//deliver order-agent access
+// deliver order-agent access
 router.post(
   "/deliver/:id/:agentid",
   requireSignIn,

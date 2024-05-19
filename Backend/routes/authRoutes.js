@@ -22,8 +22,13 @@ router.post("/login", loginController);
 
 router.get("/logout", requireSignIn, logoutUser);
 router.get("/me", requireSignIn, getUserDetails);
-router.delete("/delete/:id", requireSignIn, isAdmin('admin'), deleteUser);
-router.post("/create", requireSignIn, isAdmin('admin'), CreateUSerController);
-router.post("/change-role/:id", requireSignIn, isAdmin('admin'), changeUserRole);
+router.delete("/delete/:id", requireSignIn, isAdmin("admin"), deleteUser);
+router.post("/create", requireSignIn, isAdmin("admin"), CreateUSerController);
+router.post(
+  "/change-role/:id",
+  requireSignIn,
+  isAdmin("admin"),
+  changeUserRole
+);
 
 module.exports = router;
