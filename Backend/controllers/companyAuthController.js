@@ -1,6 +1,9 @@
 const company = require("../models/companyModel");
 const { hashPassword, comparePassword } = require("../helpers/authHelper.js");
+const CityCenter = require("../models/CityCenterModel");
+// const Order = require("../models/OrderModel");
 const JWT = require("jsonwebtoken");
+const orderModel = require("../models/orderModel.js");
 
 //register controller
 
@@ -40,7 +43,7 @@ exports.companyRegisterController = async (req, res) => {
         price,
         pincodes,
         accountNo,
-        IFSC
+        IFSC,
       }).save();
 
       res.status(201).json({
@@ -137,3 +140,5 @@ exports.companyRatingController = async (req, res) => {
     });
   }
 };
+
+//company dashboard controller

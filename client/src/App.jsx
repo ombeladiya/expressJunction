@@ -23,6 +23,9 @@ import axios from 'axios';
 import { loadUserFailure, loadUserRequest, loadUserSuccess } from './features/UserSlice'
 import Profile from './Components/User/Profile'
 import Dashboard_user from './Components/User/Dashboard/Dashboard_user'
+import Company_dashboard from './Components/Company/Company_dashboard'
+import Center from './Components/Company/Center'
+import Comp_orders from './Components/Company/Comp_orders'
 function App() {
   const dispatch = useDispatch();
 
@@ -75,6 +78,9 @@ function App() {
         <Route path='/admin/allorders' element={<AllOrders />} />
         <Route path='/profile' element={<Profile />} />
         <Route path='/user/dashboard' element={<Dashboard_user/>}/>
+        <Route path='/company/dashboard' element={<Company_dashboard/>}/>
+        <Route path='/company/City-Centers' element={<Center/>}/>
+        <Route path='/company/Orders' element={<Comp_orders/>}/>
         <Route path='*' element={<PageNotFound />} />
       </Routes>
       <Footer />

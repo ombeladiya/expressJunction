@@ -78,7 +78,7 @@ const sendEmail = async (to, subject, text, name) => {
 
 <body>
   <div class="container">
-    <img src="https://res.cloudinary.com/dwmdkrjhk/image/upload/v1705643282/ExpressJunction_lc0y1w.jpg" alt="Express-Junction Logo">
+    
     <h1>Welcome ${name}!</h1>
     <p>Thank you for registering with Express-Junction, your one-stop courier solution. We are thrilled to have you
       on board!</p>

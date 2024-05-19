@@ -6,6 +6,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    CompanyId: {
+      type: String,
+    },
     email: {
       type: String,
       required: true,
@@ -23,8 +26,8 @@ const userSchema = new mongoose.Schema(
     address: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "address"
-      }
+        ref: "address",
+      },
     ],
     role: {
       type: String,

@@ -1,13 +1,18 @@
 const { hashPassword } = require("../helpers/authHelper");
 const CityCenter = require("../models/CityCenterModel");
 const Company = require("../models/companyModel");
+const user = require("../models/userModel");
 
 exports.cityCenterRegisterController = async (req, res) => {
   try {
-    const { companyId, email, password, pincode, deliverAgentsId } = req.body;
+    const { email, password, pincode } = req.body;
 
     const existingCityCenter = await CityCenter.findOne({ pincode });
-    const comp = await Company.findById(companyId);
+    const companyId = await req.user?.CompanyId;
+
+    const comp = await Company.findOne({ _id: companyId });
+
+    console.log(req.user.CompanyId);
 
     if (!comp) {
       return res.status(404).json({
@@ -33,7 +38,6 @@ exports.cityCenterRegisterController = async (req, res) => {
       email: email,
       password: hashedPassword,
       pincode: pincode,
-      deliveryAgentsID: deliverAgentsId,
     }).save();
 
     res.status(201).json({
