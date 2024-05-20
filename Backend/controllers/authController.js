@@ -24,7 +24,7 @@ exports.registerController = async (req, res) => {
         email: email,
         password: hashedPassword,
         mobile: mobile,
-        role: 'user'
+        role: "user",
       }).save();
       //JWT generation
       const token = await JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
@@ -137,15 +137,14 @@ exports.deleteUser = async (req, res, next) => {
     await userModel.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
-      success: true
+      success: true,
     });
   } catch (err) {
     res.status(500).json({
-      success: false
+      success: false,
     });
   }
 };
-
 
 //create -user -ADmin
 exports.CreateUSerController = async (req, res) => {
@@ -160,25 +159,24 @@ exports.CreateUSerController = async (req, res) => {
         success: true,
         message: "User already registered!!",
       });
-    } 
-      const hashedPassword = await hashPassword(password);
+    }
+    const hashedPassword = await hashPassword(password);
 
     const user = new userModel({
-        name: name,
-        email: email,
-        password: hashedPassword,
-        mobile: mobile,
-        role: 'user'
+      name: name,
+      email: email,
+      password: hashedPassword,
+      mobile: mobile,
+      role: "user",
     });
 
     await user.save();
 
-      res.status(201).json({
-        success: true,
-        message: "User Creatred Successfully",
-        user,
-      });
-
+    res.status(201).json({
+      success: true,
+      message: "User Creatred Successfully",
+      user,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -186,7 +184,6 @@ exports.CreateUSerController = async (req, res) => {
     });
   }
 };
-
 
 //change user role--admin
 exports.changeUserRole = async (req, res, next) => {
@@ -196,11 +193,11 @@ exports.changeUserRole = async (req, res, next) => {
     await user.save();
     res.status(200).json({
       success: true,
-      message: "Role changed successfully"
+      message: "Role changed successfully",
     });
   } catch (err) {
     res.status(500).json({
-      success: false
+      success: false,
     });
   }
 };

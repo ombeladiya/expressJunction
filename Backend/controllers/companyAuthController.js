@@ -1,6 +1,9 @@
 const companyMOdel = require("../models/companyModel.js");
 const { hashPassword, comparePassword } = require("../helpers/authHelper.js");
+const CityCenter = require("../models/CityCenterModel");
+// const Order = require("../models/OrderModel");
 const JWT = require("jsonwebtoken");
+const orderModel = require("../models/orderModel.js");
 
 //register controller
 exports.companyRegisterController = async (req, res) => {
@@ -41,7 +44,7 @@ exports.companyRegisterController = async (req, res) => {
         price,
         // pincodes: intArray,
         accountNo,
-        IFSC
+        IFSC,
       }).save();
 
       res.status(201).json({
@@ -94,15 +97,14 @@ exports.companyLoginController = async (req, res) => {
       httpOnly: true,
     });
 
-    existingCompany.role = 'company'
+    existingCompany.role = "company";
 
     res.status(200).json({
       success: true,
       message: "Company Login Successful",
-      existingCompany
+      existingCompany,
     });
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: "Internal server error in company login",
@@ -137,7 +139,6 @@ exports.companyRatingController = async (req, res) => {
 
     res.status(200).json({ message: "Rating added successfully" });
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: "Internal server error in updating rating",
@@ -145,12 +146,10 @@ exports.companyRatingController = async (req, res) => {
   }
 };
 
-
 //company delete - Admin
 
 exports.DeleteCompany = async (req, res) => {
   try {
-
     await companyMOdel.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Company Deleted successfully" });

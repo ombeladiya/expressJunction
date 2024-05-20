@@ -2,9 +2,16 @@ const Order = require("../models/orderModel");
 const Company = require("../models/companyModel");
 const addressModel = require("../models/addressModel");
 const userModel = require("../models/userModel");
+const companyModel = require("../models/companyModel");
+const CityCenterModel = require("../models/CityCenterModel");
+const fetch = require("node-fetch");
+// const orderModel = require("../models/orderModel");
+const mongoose = require("mongoose");
+
 const CityCenter = require("../models/CityCenterModel");
 const deliveryAgentModel = require("../models/deliveryAgentModel");
 const orderModel = require("../models/orderModel");
+
 //palce order controller
 exports.placeOrderController = async (req, res) => {
   try {
@@ -18,7 +25,6 @@ exports.placeOrderController = async (req, res) => {
         message: "Company Not found",
       });
     }
-
 
     const totalPrice = totalWeight * company.price;
     // Create the order object
@@ -53,8 +59,6 @@ exports.fetchSingleOrderController = async (req, res) => {
   try {
     const { id } = req.params;
     const O = await Order.findById(id);
-    const SourceAddress = await addressModel.findById(O.sourceId);
-    const DestiAddress = await addressModel.findById(O.destinationId);
 
     if (!O) {
       return res.status(404).json({
@@ -62,6 +66,11 @@ exports.fetchSingleOrderController = async (req, res) => {
         message: "No order found",
       });
     }
+
+    const SourceAddress = await addressModel.findById(O.sourceId);
+    const DestiAddress = await addressModel.findById(
+      "65ce3c132da91237ce480db3"
+    );
 
     // Get the last object from the 'reached' array
     const lastReach =
@@ -72,16 +81,59 @@ exports.fetchSingleOrderController = async (req, res) => {
     let data = null;
 
     if (lastReach) {
-      LastReached = lastReach.centerId;
+      try {
+        LastReached = lastReach.centerId;
+        center = await CityCenterModel.findOne({ _id: LastReached });
+        LastReached = lastReach.centerId;
 
-      center = await CityCenter.findOne({ _id: LastReached });
+        center = await CityCenter.findOne({ _id: LastReached });
 
-      const centerPincode = center.pincode;
+        const centerPincode = center.pincode;
 
-      const response = await fetch(
-        `https://api.postalpincode.in/pincode/${centerPincode}`
-      );
-      data = await response.json();
+        if (!center) {
+          console.error(
+            "Center not found for the given LastReached centerId:",
+            LastReached
+          );
+          return res.status(404).json({
+            success: false,
+            message: "Center not found for the given LastReached centerId",
+          });
+        }
+
+        console.log("Fetching data for pincode:", centerPincode);
+        const response = await fetch(
+          `https://api.postalpincode.in/pincode/${centerPincode}`
+        );
+
+        if (!response.ok) {
+          console.error(
+            `Failed to fetch data for pincode ${centerPincode}, status: ${response.status}`
+          );
+          return res.status(500).json({
+            success: false,
+            message: `Failed to fetch data for pincode ${centerPincode}`,
+          });
+        }
+
+        data = await response.json();
+        console.log("Fetched data:", data);
+
+        if (!data || data[0].Status !== "Success") {
+          console.error("Invalid response data from pincode API:", data);
+          return res.status(500).json({
+            success: false,
+            message: "Invalid response data from pincode API",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching center or pincode data:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Error fetching center or pincode data",
+          error: error.message,
+        });
+      }
     }
 
     res.status(200).json({
@@ -96,8 +148,11 @@ exports.fetchSingleOrderController = async (req, res) => {
       data,
     });
   } catch (error) {
+    console.error("Internal server error:", error);
     res.status(500).json({
       success: false,
+      message: "Internal server error in fetching order",
+      error: error.message,
       message: error.message,
     });
   }
@@ -106,13 +161,15 @@ exports.fetchSingleOrderController = async (req, res) => {
 //Fetching all orders of a company
 exports.fetchAllOrdersOfCompany = async (req, res) => {
   try {
-    const { cid } = req.params;
+    const cid = req.user.CompanyId;
     const allCompanyOrders = await Order.find({ companyId: cid });
+    const len = allCompanyOrders.length;
 
     res.status(200).json({
       success: true,
       message: "Orders Found",
       allCompanyOrders,
+      len,
     });
   } catch (error) {
     res.status(500).json({
@@ -147,7 +204,7 @@ exports.fetchOrderDestinationController = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Orders Fetched",
-      destinationOrders
+      destinationOrders,
     });
   } catch (error) {
     res.status(500).json({
@@ -175,7 +232,6 @@ exports.cityCenterOrderController = async (req, res) => {
   }
 };
 
-
 //delete order contorller-admin
 exports.deleteOrderAdmin = async (req, res) => {
   try {
@@ -198,7 +254,9 @@ exports.deleteOrderAdmin = async (req, res) => {
 exports.fetchUserController = async (req, res) => {
   try {
     const uid = await req?.user?._id;
-    const userOrders = await Order.find({ userId: uid }).sort({ orderedAt: -1 });
+    const userOrders = await Order.find({ userId: uid }).sort({
+      orderedAt: -1,
+    });
 
     res.status(200).json({
       success: true,
@@ -240,7 +298,6 @@ exports.cancelOrderController = async (req, res) => {
   }
 };
 
-
 //geting admin dashboard details
 exports.getAdminDashboardDetails = async (req, res) => {
   try {
@@ -249,14 +306,14 @@ exports.getAdminDashboardDetails = async (req, res) => {
     const citycenter = await Company.find({}).count();
     const result = await Order.aggregate([
       {
-        $match: { status: "Delivered" }
+        $match: { status: "Delivered" },
       },
       {
         $group: {
           _id: null,
-          totalSum: { $sum: "$price" }
-        }
-      }
+          totalSum: { $sum: "$price" },
+        },
+      },
     ]);
 
     const noofusers = await userModel.aggregate([
@@ -265,17 +322,17 @@ exports.getAdminDashboardDetails = async (req, res) => {
           _id: {
             year: { $year: "$createdAt" },
             month: { $month: "$createdAt" },
-            day: { $dayOfMonth: "$createdAt" }
+            day: { $dayOfMonth: "$createdAt" },
           },
-          userCount: { $sum: 1 }
-        }
+          userCount: { $sum: 1 },
+        },
       },
       {
         $sort: {
           "_id.year": 1,
           "_id.month": 1,
-          "_id.day": 1
-        }
+          "_id.day": 1,
+        },
       },
       {
         $project: {
@@ -284,23 +341,22 @@ exports.getAdminDashboardDetails = async (req, res) => {
             $dateFromParts: {
               year: "$_id.year",
               month: "$_id.month",
-              day: "$_id.day"
-            }
+              day: "$_id.day",
+            },
           },
-          userCount: 1
-        }
-      }
+          userCount: 1,
+        },
+      },
     ]);
 
     const dayvsuser = [
       ["Day", "Number of User"],
-      ...noofusers.map(item => [
+      ...noofusers.map((item) => [
         new Date(item.date).getDate(),
-        item.userCount
-      ])
+        item.userCount,
+      ]),
     ];
     const totalSum = result.length > 0 ? result[0].totalSum : 0;
-
 
     const result2 = await Order.aggregate([
       {
@@ -308,17 +364,17 @@ exports.getAdminDashboardDetails = async (req, res) => {
           _id: {
             year: { $year: "$orderedAt" },
             month: { $month: "$orderedAt" },
-            day: { $dayOfMonth: "$orderedAt" }
+            day: { $dayOfMonth: "$orderedAt" },
           },
-          orderCount: { $sum: 1 }
-        }
+          orderCount: { $sum: 1 },
+        },
       },
       {
         $sort: {
           "_id.year": 1,
           "_id.month": 1,
-          "_id.day": 1
-        }
+          "_id.day": 1,
+        },
       },
       {
         $project: {
@@ -327,41 +383,218 @@ exports.getAdminDashboardDetails = async (req, res) => {
             $dateFromParts: {
               year: "$_id.year",
               month: "$_id.month",
-              day: "$_id.day"
-            }
+              day: "$_id.day",
+            },
           },
-          orderCount: 1
-        }
-      }
+          orderCount: 1,
+        },
+      },
     ]);
 
     // Process the result to fit the required format
     const dayvsorders = [
       ["Day", "Number of Orders"],
-      ...result2.map(item => [
+      ...result2.map((item) => [
         new Date(item.date).getDate(), // Extract day from date
-        item.orderCount
-      ])
+        item.orderCount,
+      ]),
     ];
     const data = {
-      orders, users, citycenter, revenue: totalSum, dayvsuser, dayvsorders
-    }
+      orders,
+      users,
+      citycenter,
+      revenue: totalSum,
+      dayvsuser,
+      dayvsorders,
+    };
     res.status(200).json({
       success: true,
       message: "dashboard data fetched Successfully",
-      data
+      data,
     });
-
-
   } catch (err) {
+    console.log(err);
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching All data",
     });
   }
-}
+};
 
+//get allcity centers for comapny dashboard
+exports.getCityCenter = async (req, res) => {
+  try {
+    const { CompID } = await req.params;
+    const centers = await CityCenterModel.find({ company: CompID });
+    console.log(CompID);
+    res.status(200).json({
+      success: true,
+      centers,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
+//delete center controller
+
+exports.deleteCenterController = async (req, res) => {
+  try {
+    const { cid } = req.params; // Destructure the cid from req.params
+    const center = await CityCenterModel.findByIdAndDelete(cid); // Pass cid directly to findByIdAndDelete
+    if (!center) {
+      // If center is not found
+      return res.status(404).json({
+        success: false,
+        message: "City Center not found",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "City Center Deleted Successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error in Deleting Center",
+    });
+  }
+
+  //Fetching all orders of delivery Agent
+  exports.fetchAllOrdersOfAgent = async (req, res) => {
+    try {
+      const user = await deliveryAgentModel.findById(req.params.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Delivery Agent Not found",
+        });
+      }
+
+      const orders = await Promise.all(
+        user.ordersDelivered.map(async (oid) => {
+          return await orderModel.findById(oid);
+        })
+      );
+      res.status(200).json({
+        success: true,
+        message: "Delivery Agent's Order fetched successfully",
+        orders,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Internal server error in fetching orders of a company",
+      });
+    }
+  };
+};
+//change order status
+exports.changeOrderStatus = async (req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id);
+    order.status = req.body.status;
+    await order.save();
+    res.status(200).json({
+      success: true,
+      message: "Status changed successfully",
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+    });
+  }
+};
+
+//company dashboard
+exports.companyDashboard = async (req, res) => {
+  try {
+    const companyId = await req.user.CompanyId;
+
+    // Number of city centers
+    const cityCenterCount = await CityCenterModel.countDocuments({
+      company: companyId,
+    });
+
+    // Total orders
+    const totalOrders = (await orderModel.find({ companyId: companyId }))
+      .length;
+
+    // Orders with status "Reached"
+    const reachedOrdersCount = await Order.countDocuments({
+      companyId,
+      status: "Reached",
+    });
+
+    // Total revenue
+    const totalRevenueResult = await Order.aggregate([
+      { $match: { companyId: new mongoose.Types.ObjectId(companyId) } },
+      { $group: { _id: null, totalRevenue: { $sum: "$price" } } },
+    ]);
+
+    const totalRevenue =
+      totalRevenueResult.length > 0 ? totalRevenueResult[0].totalRevenue : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        cityCenterCount,
+        totalOrders,
+        reachedOrdersCount,
+        totalRevenue,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+//delever order of delivery Agent
+exports.deliverOrdersOfAgent = async (req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id);
+    const user = await deliveryAgentModel.findById(req.params.agentid);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order Not found",
+      });
+    }
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery Agent Not found",
+      });
+    }
+    order.status = "Delivered";
+    order.deliveredAt = Date.now();
+    await order.save();
+
+    user.ordersDelivered.push(order._id);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Order Delivered",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 //Fetching all orders of delivery Agent
 exports.fetchAllOrdersOfAgent = async (req, res) => {
@@ -374,58 +607,20 @@ exports.fetchAllOrdersOfAgent = async (req, res) => {
       });
     }
 
-    const orders = await Promise.all(user.ordersDelivered.map(async (oid) => {
-      return await orderModel.findById(oid);
-    }));
+    const orders = await Promise.all(
+      user.ordersDelivered.map(async (oid) => {
+        return await orderModel.findById(oid);
+      })
+    );
     res.status(200).json({
       success: true,
       message: "Delivery Agent's Order fetched successfully",
-      orders
+      orders,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Internal server error in fetching orders of a company",
-    });
-  }
-};
-
-
-//delever order of delivery Agent
-exports.deliverOrdersOfAgent = async (req, res) => {
-  try {
-    const order = await orderModel.findById(req.params.id);
-    const user = await deliveryAgentModel.findById(req.params.agentid);
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order Not found"
-      });
-    }
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Delivery Agent Not found"
-      });
-    }
-    order.status = "Delivered";
-    order.deliveredAt = Date.now();
-    await order.save();
-
-    user.ordersDelivered.push(order._id);
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Order Delivered"
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
     });
   }
 };

@@ -1,14 +1,19 @@
 const { hashPassword } = require("../helpers/authHelper");
 const CityCenter = require("../models/CityCenterModel");
 const Company = require("../models/companyModel");
+const user = require("../models/userModel");
 const Order = require("../models/orderModel");
 
 exports.cityCenterRegisterController = async (req, res) => {
   try {
-    const { companyId, email, password, pincode, deliverAgentsId } = req.body;
+    const { email, password, pincode } = req.body;
 
     const existingCityCenter = await CityCenter.findOne({ pincode });
-    const comp = await Company.findById(companyId);
+    const companyId = await req.user?.CompanyId;
+
+    const comp = await Company.findOne({ _id: companyId });
+
+    console.log(req.user.CompanyId);
 
     if (!comp) {
       return res.status(404).json({
@@ -34,7 +39,6 @@ exports.cityCenterRegisterController = async (req, res) => {
       email: email,
       password: hashedPassword,
       pincode: pincode,
-      deliveryAgentsID: deliverAgentsId,
     }).save();
 
     res.status(201).json({
@@ -50,12 +54,11 @@ exports.cityCenterRegisterController = async (req, res) => {
   }
 };
 
-
 exports.addcitycenterreached = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
-    if (order.status == 'Confirmed') {
-      order.status = 'In-Transit';
+    if (order.status == "Confirmed") {
+      order.status = "In-Transit";
     }
     order.reached.push({ centerId: req.params.cityid });
 
@@ -63,13 +66,13 @@ exports.addcitycenterreached = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Parcel Recieved successfully"
+      message: "Parcel Recieved successfully",
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).json({
       success: false,
       message: err.message,
     });
   }
-}
+};

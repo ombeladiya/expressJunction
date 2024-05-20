@@ -17,7 +17,13 @@ const CityCenterSchema = new mongoose.Schema({
   pincode: {
     type: Number,
     required: true,
-  }
+  },
+  deliveryAgentsId: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "deliveryagent",
+    },
+  ],
 });
 
-module.exports = mongoose.model("cityCenter", CityCenterSchema);
+module.exports = mongoose.model("CityCenter", CityCenterSchema);

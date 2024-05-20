@@ -23,6 +23,9 @@ import axios from 'axios';
 import { loadUserFailure, loadUserRequest, loadUserSuccess } from './features/UserSlice'
 import Profile from './Components/User/Profile'
 import Dashboard_user from './Components/User/Dashboard/Dashboard_user'
+import Company_dashboard from './Components/Company/Company_dashboard'
+import Center from './Components/Company/Center'
+import Comp_orders from './Components/Company/Comp_orders'
 import AllCompany from './Components/Admin/ADMIN/AllCompany'
 import QrScanner from './Components/CityCenter/QrScanner'
 import CityDashboard from './Components/CityCenter/CityDashboard'
@@ -82,6 +85,9 @@ function App() {
         <Route path='/profile' element={<Profile />} />
         <Route path='/citycenter/scanner' element={<QrScanner />} />
         <Route path='/user/dashboard' element={<Dashboard_user/>}/>
+        <Route path='/company/dashboard' element={<Company_dashboard/>}/>
+        <Route path='/company/City-Centers' element={<Center/>}/>
+        <Route path='/company/Orders' element={<Comp_orders/>}/>
         <Route path='/company/login' element={<CompanyLogin />} />
         <Route path='/citycenter/dashboard' element={<CityDashboard />} />
         <Route path='/agent/dashboard' element={<AgentDashboard />} />
