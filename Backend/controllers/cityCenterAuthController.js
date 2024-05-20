@@ -69,7 +69,7 @@ exports.addcitycenterreached = async (req, res) => {
     console.log(err)
     res.status(500).json({
       success: false,
-      message: "Internal server error in CityCenter Adding in reached",
+      message: err.message,
     });
   }
 }
