@@ -18,6 +18,7 @@ const {
   companyDashboard,
 } = require("../controllers/orderController");
 const { requireSignIn, isAdmin } = require("../middleware/authMiddleware");
+const { checkout } = require("../controllers/PaymentController");
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.get(
 router.get("/fetchorderdest/:did", fetchOrderDestinationController);
 
 //fetch orders of a city center
-router.get("/fetchordercc/:ccid", cityCenterOrderController);
+router.get("/fetchordercc/:ccid", requireSignIn, isAdmin('city'), cityCenterOrderController);
 
 //delete order
 router.delete(
@@ -99,4 +100,8 @@ router.post(
 //get all agent's orders- citycenter access
 router.get("/orders/:id", fetchAllOrdersOfAgent);
 
+
+//payment 
+
+router.post('/checkout', requireSignIn, checkout);
 module.exports = router;

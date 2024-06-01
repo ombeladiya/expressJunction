@@ -31,6 +31,8 @@ import QrScanner from './Components/CityCenter/QrScanner'
 import CityDashboard from './Components/CityCenter/CityDashboard'
 import AgentDashboard from './Components/Admin/DeliveryAgent/AgentDashboard'
 import AgentScanner from './Components/Admin/DeliveryAgent/AgentScanner'
+import Contact from './Components/Layout/Contact'
+import CityAllOrder from './Components/CityCenter/CityAllOrder'
 
 function App() {
   const dispatch = useDispatch();
@@ -73,6 +75,7 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path='/login' element={<Login />} />
         <Route path='/signup' element={<Signup />} />
+        <Route path='/contact' element={<Contact />} />
         <Route path='/addorder' element={<AddOrder />} />
         <Route path='/addsender' element={<AddSender />} />
         <Route path='/addparcel' element={<AddParcel />} />
@@ -84,6 +87,7 @@ function App() {
         <Route path='/admin/allorders' element={<AllOrders />} />
         <Route path='/profile' element={<Profile />} />
         <Route path='/citycenter/scanner' element={<QrScanner />} />
+        <Route path='/citycenter/orders' element={<CityAllOrder />} />
         <Route path='/user/dashboard' element={<Dashboard_user/>}/>
         <Route path='/company/dashboard' element={<Company_dashboard/>}/>
         <Route path='/company/City-Centers' element={<Center/>}/>

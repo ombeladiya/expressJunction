@@ -30,6 +30,11 @@ app.use("/api/v1/orders", orderRoute);
 app.use("/api/v1/address", addressRoute);
 app.use("/api/v1/deliveryAgent", deliveryAgentsRoute);
 
+app.get("/api/v1/getkey", (req, res) => {
+  res.status(200).json({
+    key: process.env.RAZORPAY_KEY_ID
+  })
+})
 app.use(express.static(path.join(__dirname, "./dist")));
 
 app.get("*", (req, res) => {

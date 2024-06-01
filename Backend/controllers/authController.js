@@ -7,7 +7,6 @@ const sendMail = require("../utils/sendEmail.js");
 exports.registerController = async (req, res) => {
   try {
     const { name, email, password, mobile } = req.body;
-
     //check existing user
 
     const existingUserm = await userModel.findOne({ mobile });
@@ -33,8 +32,9 @@ exports.registerController = async (req, res) => {
 
       res.cookie("token", token, {
         maxAge: 259200000,
-        httpOnly: true,
+        httpOnly: true
       });
+
       res.status(201).json({
         success: true,
         message: "User Registered Successfully",
@@ -43,7 +43,6 @@ exports.registerController = async (req, res) => {
       sendMail(user.email, "Express-Junction", "", user.name);
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error in user registartion",

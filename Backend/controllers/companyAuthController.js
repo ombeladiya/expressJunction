@@ -56,7 +56,7 @@ exports.companyRegisterController = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: true,
-      message: "Internal server error in company registration",
+      message: error.message,
     });
   }
 };
@@ -107,7 +107,7 @@ exports.companyLoginController = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Internal server error in company login",
+      message: error.message,
     });
   }
 };

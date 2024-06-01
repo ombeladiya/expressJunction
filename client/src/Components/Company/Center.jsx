@@ -55,7 +55,7 @@ const Center = () => {
             setUserChanged(userChanged + 1);
             toast.success(data.message);
         } catch (err) {
-            toast.error(err);
+            toast.error(err.response.data.message);
         }
     };
 
@@ -67,7 +67,7 @@ const Center = () => {
             setUserChanged(userChanged + 1);
             toast.success(data.message);
         } catch (err) {
-            toast.error("Error while changing Role");
+            toast.error(err.response.data.message);
         }
     };
 
@@ -82,7 +82,7 @@ const Center = () => {
             toast.success("City-Center Deleted Successfully");
             setUserChanged(userChanged + 1);
         } catch (err) {
-            toast.error("Error deleting City Center");
+            toast.error(err.response.data.message);
         }
     };
 
@@ -92,7 +92,7 @@ const Center = () => {
             const { data } = await axios.get(`/api/v1/orders/getCenter/${compID}`);
             setUsers(data.centers);
         } catch (err) {
-            toast.error('Error while fetching users');
+            toast.error(err.response.data.message);
         }
     };
 
@@ -223,7 +223,7 @@ const Center = () => {
                                                     <div className="flex justify-end mt-6">
                                                         <button
                                                             type="submit"
-                                                            className="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring focus:ring-blue-300 disabled:opacity-25 transition"
+                                                            className="inline-flex items-center px-4 py-2 bg-orange-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-400 active:bg-orange-900 focus:outline-none focus:border-orange-900 focus:ring focus:ring-orange-300 disabled:opacity-25 transition"
                                                         >
                                                             Create city center
                                                         </button>

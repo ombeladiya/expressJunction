@@ -301,6 +301,7 @@ export function AddSender() {
                                     id="city"
                                     value={city}
                                     readOnly
+                                    required
                                 />
                             </div>
                         </div>
@@ -319,6 +320,7 @@ export function AddSender() {
                                     id="district"
                                     value={district}
                                     readOnly
+                                    required
                                 />
                             </div>
                         </div>
@@ -337,6 +339,7 @@ export function AddSender() {
                                     id="state"
                                     value={state}
                                     readOnly
+                                    required
                                 />
                             </div>
                         </div>
@@ -354,6 +357,7 @@ export function AddSender() {
                                     placeholder="Enter your Country"
                                     value={country}
                                     readOnly
+                                    required
                                 />
                             </div>
                         </div>

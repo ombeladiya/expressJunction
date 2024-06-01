@@ -8,12 +8,10 @@ exports.cityCenterRegisterController = async (req, res) => {
   try {
     const { email, password, pincode } = req.body;
 
-    const existingCityCenter = await CityCenter.findOne({ pincode });
+
     const companyId = await req.user?.CompanyId;
-
+    const existingCityCenter = await CityCenter.findOne({ pincode, company: companyId });
     const comp = await Company.findOne({ _id: companyId });
-
-    console.log(req.user.CompanyId);
 
     if (!comp) {
       return res.status(404).json({
@@ -23,7 +21,7 @@ exports.cityCenterRegisterController = async (req, res) => {
     }
 
     if (existingCityCenter) {
-      return res.status(200).json({
+      return res.status(409).json({
         success: false,
         message: "City Center Already Exists Please Login",
       });
@@ -49,7 +47,7 @@ exports.cityCenterRegisterController = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Internal server error in CityCenter Registration",
+      message: error.message,
     });
   }
 };
@@ -69,7 +67,6 @@ exports.addcitycenterreached = async (req, res) => {
       message: "Parcel Recieved successfully",
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({
       success: false,
       message: err.message,

@@ -5,11 +5,24 @@ import QR from '../../Layout/QR';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Loader from '../../Layout/Loader';
+import { useSelector } from 'react-redux';
+
+
+function loadRazorpayScript() {
+  const script = document.createElement('script');
+  script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+  script.async = true;
+  document.head.appendChild(script);
+}
+
 
 function Dashboard_user() {
   const [data, setData] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { user } = useSelector((state) => state.auth)
+  const [paybtndisable, setdisable] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -79,11 +92,60 @@ function Dashboard_user() {
       .catch((err) => console.error('Error generating PDF:', err));
   };
 
+
+  const checkout = async (amount) => {
+    try {
+      setdisable(true);
+
+      loadRazorpayScript();
+      const config = { headers: { "Content-Type": "application/json" } };
+      const { data: { key } } = await axios.get("/api/v1/getkey");
+      const { data: { order } } = await axios.post("/api/v1/orders/checkout", { amount }, config);
+
+      var options = {
+        "key": key,
+        "amount": order.amount,
+        "currency": "INR",
+        "name": "Express Junction",
+        "description": "A Courier Aggrigator Company",
+        "image": '/logo.png',
+        "order_id": order.id,
+        "handler": async function (response) {
+          try {
+            toast.success("payment done");
+          } catch (error) {
+            toast.error(error.response.data.message);
+          }
+        },
+        "prefill": {
+          "name": user.name,
+          "email": user.email,
+          "mobile": user.mobile
+        },
+        "notes": {
+          "address": "express junction"
+        },
+        "theme": {
+          "color": "#000000"
+        }
+      };
+      const rzp1 = new window.Razorpay(options);
+      rzp1.on('payment.failed', function (response) {
+        toast.error(response.error.message);
+      });
+      rzp1.open();
+
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+
+  }
+
   return (
     <div className='mt-20 min-h-screen w-full'>
       {loading && <div className='absolute top-0 left-0 w-full h-full mt-14 flex justify-center items-center'> <Loader /></div>}
       <h2 className='font-semibold text-center text-xl text-pretty'>My Orders</h2>
-      {data && !loading && <table className="min-w-full divide-y divide-gray-200 mt-3">
+      {data && data[0] && !loading && <table className="min-w-full divide-y divide-gray-200 mt-3">
         <thead className="bg-orange-500">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Weight</th>
@@ -92,6 +154,7 @@ function Dashboard_user() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ORDER Date</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Info</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Cancel</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Payment</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -102,25 +165,38 @@ function Dashboard_user() {
               <td className="px-6 py-2 whitespace-nowrap">{item.status}</td>
               <td className="px-6 py-2 whitespace-nowrap">{formatDate(item.orderedAt)}</td>
               <td className="px-6 py-2 whitespace-nowrap">
-                <button className="bg-gray-200 hover:bg-gray-400  py-2 px-4 rounded-sm text-sm" onClick={() => handleInfoClick(item._id)}>
+                <button className="bg-gray-200 hover:bg-gray-400  py-1 px-4 rounded-sm text-sm" onClick={() => handleInfoClick(item._id)}>
                   Info
                 </button>
               </td>
               <td className="px-6 py-2 whitespace-nowrap">
                 <button
-                  className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-sm text-sm disabled:bg-red-300"
+                  className="border-orange-500 border-[3px] border-double hover:bg-orange-500 hover:text-white py-1 px-4 rounded-sm text-sm disabled:bg-red-300"
                   onClick={() => handleCancelClick(item._id)}
                   disabled={item.status === "Cancelled" || item.status === "Reached"}
                 >
                   Cancel
                 </button>
               </td>
-            </tr>
+              <td className="px-6 py-2 whitespace-nowrap">
+                {(item.status !== 'Not-Confirmed' && item.status !== 'Reached') && <button
+                  className="border-orange-500 border-[3px] border-double hover:bg-orange-500 hover:text-white py-1 px-4 rounded-sm text-sm disabled:bg-red-300"
+                  onClick={() => checkout(item.price)}
+                  disabled={paybtndisable}
+                >
+                  Pay Now
+                </button>}
+                {
+                  item.status === 'Not-Confirmed' && <span>Pending</span>
+                }
+
+              </td>
+            </tr> 
           ))}
         </tbody>
 
       </table>}
-      {!data && <div className='mt-5 text-rose-500 text-center text-2xl'>No Any Orders!!</div>}
+      {(!data || !data[0]) && <div className='mt-5 text-rose-500 text-center text-2xl'>No Any Orders!!</div>}
       {/* Popup/Modal Component */}
 
       {selectedOrder && (
@@ -147,7 +223,7 @@ function Dashboard_user() {
                         {selectedOrder?.DestiAddress?.country}, {selectedOrder?.DestiAddress?.pincode}, Mo: <b>{selectedOrder?.DestiAddress?.phoneNo}</b> 
                       </p>
                       {selectedOrder?.O?.status !== 'Not-Confirmed' && selectedOrder?.O?.status !== 'Confirmed' && <p className="text-sm"><br />
-                        <b>Last Reached:</b> {selectedOrder?.O?.status === "Delivered" ? "Delivered" : (selectedOrder?.O?.status === "Cancelled" ? "Cancelled" : selectedOrder?.data?.[0]?.PostOffice?.[0]?.District)}
+                        <b>Last Reached:</b> {selectedOrder?.O?.status === "Reached" ? "Delivered" : (selectedOrder?.O?.status === "Cancelled" ? "Cancelled" : selectedOrder?.data?.[0]?.PostOffice?.[0]?.District)}
                       </p>}
                     </div>
                   </div>

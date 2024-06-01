@@ -24,7 +24,6 @@ const Comp_orders = () => {
             renderCell: (params) => (
                 <Button
                     onClick={() => handleOpenModal(params.row)}
-                    disabled={params.row.status === 'Confirmed' || params.row.status ==="Reached" || params.row.status ==="Cancelled"}
                 >
                     <FilePenLine size={18} />
                 </Button>
@@ -38,7 +37,7 @@ const Comp_orders = () => {
                 const { data } = await axios.get('/api/v1/orders/fetchcompanyorders');
                 setOrders(data.allCompanyOrders);
             } catch (err) {
-                toast.error("Error while fetching orders");
+                toast.error(err.response.data.message);
             }
         };
         fetchData();
@@ -65,8 +64,7 @@ const Comp_orders = () => {
             setOrderChanged(!orderChanged);
             handleCloseModal();
         } catch (err) {
-            console.log(err)
-            toast.error("Error while updating order status");
+            toast.error(err.response.data.message);
         }
     };
 
@@ -125,17 +123,18 @@ const Comp_orders = () => {
                     >
                         <MenuItem value="Confirmed" selected>Confirmed</MenuItem>
                         <MenuItem value="Cancelled">Cancelled</MenuItem>
+                        <MenuItem value="Reached">Reached</MenuItem>
                     </Select>
                     <div className="flex justify-end">
                         <button
-                            className="bg-orange-500 text-white px-4 py-2 rounded mr-2"
+                            className="bg-orange-500 hover:bg-orange-400 text-white px-4 py-2 rounded mr-2"
                             variant="outlined"
                             onClick={handleUpdateStatus}
                         >
                             Update
                         </button>
                         <button
-                            className="bg-black text-white px-4 py-2 rounded"
+                            className="bg-zinc-300 px-4 py-2 rounded hover:bg-zinc-400"
                             variant="outlined"
                             onClick={handleCloseModal}
                         >

@@ -49,8 +49,7 @@ exports.placeOrderController = async (req, res) => {
       order,
     });
   } catch (error) {
-    console.error("Error initializing order:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -69,7 +68,7 @@ exports.fetchSingleOrderController = async (req, res) => {
 
     const SourceAddress = await addressModel.findById(O.sourceId);
     const DestiAddress = await addressModel.findById(
-      "65ce3c132da91237ce480db3"
+      O.destinationId
     );
 
     // Get the last object from the 'reached' array
@@ -91,25 +90,17 @@ exports.fetchSingleOrderController = async (req, res) => {
         const centerPincode = center.pincode;
 
         if (!center) {
-          console.error(
-            "Center not found for the given LastReached centerId:",
-            LastReached
-          );
           return res.status(404).json({
             success: false,
             message: "Center not found for the given LastReached centerId",
           });
         }
 
-        console.log("Fetching data for pincode:", centerPincode);
         const response = await fetch(
           `https://api.postalpincode.in/pincode/${centerPincode}`
         );
 
-        if (!response.ok) {
-          console.error(
-            `Failed to fetch data for pincode ${centerPincode}, status: ${response.status}`
-          );
+        if (!response.ok) { 
           return res.status(500).json({
             success: false,
             message: `Failed to fetch data for pincode ${centerPincode}`,
@@ -117,20 +108,18 @@ exports.fetchSingleOrderController = async (req, res) => {
         }
 
         data = await response.json();
-        console.log("Fetched data:", data);
 
         if (!data || data[0].Status !== "Success") {
-          console.error("Invalid response data from pincode API:", data);
           return res.status(500).json({
             success: false,
             message: "Invalid response data from pincode API",
           });
         }
       } catch (error) {
-        console.error("Error fetching center or pincode data:", error);
+
         return res.status(500).json({
           success: false,
-          message: "Error fetching center or pincode data",
+          message: error.message,
           error: error.message,
         });
       }
@@ -148,12 +137,10 @@ exports.fetchSingleOrderController = async (req, res) => {
       data,
     });
   } catch (error) {
-    console.error("Internal server error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error in fetching order",
-      error: error.message,
       message: error.message,
+      error: error.message,
     });
   }
 };
@@ -426,13 +413,13 @@ exports.getCityCenter = async (req, res) => {
   try {
     const { CompID } = await req.params;
     const centers = await CityCenterModel.find({ company: CompID });
-    console.log(CompID);
+
     res.status(200).json({
       success: true,
       centers,
     });
   } catch (error) {
-    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -458,7 +445,6 @@ exports.deleteCenterController = async (req, res) => {
       message: "City Center Deleted Successfully",
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error in Deleting Center",
@@ -505,7 +491,7 @@ exports.changeOrderStatus = async (req, res) => {
       message: "Status changed successfully",
     });
   } catch (err) {
-    console.log(err);
+
     res.status(500).json({
       success: false,
     });
@@ -577,7 +563,7 @@ exports.deliverOrdersOfAgent = async (req, res) => {
         message: "Delivery Agent Not found",
       });
     }
-    order.status = "Delivered";
+    order.status = "Reached";
     order.deliveredAt = Date.now();
     await order.save();
 

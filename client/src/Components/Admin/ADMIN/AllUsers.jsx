@@ -48,8 +48,9 @@ function AllUsers() {
             width: 80,
             renderCell: (params) => (
                 <div className='flex gap-3'>
-                    <button onClick={() => handleEdit(params.row)}><FilePenLine size={18} /></button>
-                    <button className='text-red-600' onClick={() => handleDelete(params.row)}><Trash size={18} /></button>
+                    <button
+                        className='disabled:opacity-25' onClick={() => handleEdit(params.row)} disabled={params.row.role == 'admin'}><FilePenLine size={18} /></button>
+                    <button className='text-red-600 disabled:opacity-25' onClick={() => handleDelete(params.row)} disabled={params.row.role == 'admin'}><Trash size={18} /></button>
                 </div>
             ),
         },
@@ -63,7 +64,7 @@ function AllUsers() {
             setuserchanged(Math.random());
             toast.success(data.message);
         } catch (err) {
-            toast.error("User Aleready Exists");
+            toast.error(err.response.data.message);
         }
     }
 

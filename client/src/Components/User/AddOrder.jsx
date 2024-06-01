@@ -234,6 +234,7 @@ export function AddOrder() {
                     id="district"
                     value={district}
                     readOnly
+                    required
                   />
                 </div>
               </div>
@@ -252,6 +253,7 @@ export function AddOrder() {
                     id="state"
                     value={state}
                     readOnly
+                    required
                   />
                 </div>
               </div>
@@ -269,6 +271,7 @@ export function AddOrder() {
                     placeholder="Enter Reciever's Country"
                     value={country}
                     readOnly
+                    required
                   />
                 </div>
               </div>
