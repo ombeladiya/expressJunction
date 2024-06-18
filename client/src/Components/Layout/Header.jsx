@@ -94,16 +94,16 @@ function Header() {
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-2 py-4">
                   <ul className='flex px-1.5 flex-col space-y-3'>
-                    {isAuthenticated && (user.role === 'user') && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/user/dashboard'>MyOrder</Link></li>}
-                    {isAuthenticated && (user.role === 'user') && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/addorder'>AddOrder</Link></li>}
-                    {isAuthenticated && user.role === 'admin' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/admin/dashboard'>Dashboard</Link></li>}
-                    {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/citycenter/scanner'>Add Parcel</Link></li>}
+                    {isAuthenticated && (user.role === 'user') && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/user/dashboard'>MyOrder</Link></li>}
+                    {isAuthenticated && (user.role === 'user') && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/addorder'>AddOrder</Link></li>}
+                    {isAuthenticated && user.role === 'admin' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/admin/dashboard'>Dashboard</Link></li>}
+                    {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/citycenter/scanner'>Add Parcel</Link></li>}
                     {/* {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/citycenter/orders'>All Orders</Link></li>} */}
-                    {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/citycenter/dashboard'>Agents</Link></li>}
-                    {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/agent/dashboard'>Dashboard</Link></li>}
-                    {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/agent/scanner'>Scanner</Link></li>}
-                    {isAuthenticated && user.role === 'company' && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block' onClick={() => closeMenu()}><Link to='/company/dashboard'>Dashboard</Link></li>}
-                    {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700 hidden sm:block'><Link to='/profile'>Profile</Link></li>}
+                    {isAuthenticated && user.role === 'city' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/citycenter/dashboard'>Agents</Link></li>}
+                    {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/agent/dashboard'>Dashboard</Link></li>}
+                    {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/agent/scanner'>Scanner</Link></li>}
+                    {isAuthenticated && user.role === 'company' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/company/dashboard'>Dashboard</Link></li>}
+                    {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700'><Link to='/profile'>Profile</Link></li>}
                     <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/'>About Us</Link></li>
                     <li className='mx-4 text-sm hover:text-zinc-700 ' onClick={() => closeMenu()}><Link to='/contact'>Contact Us</Link></li>
                     {!isAuthenticated && <li className='mx-2 sm:mx-4 -my-1 text-sm' onClick={() => closeMenu()}><Link to='/login'> <button
@@ -118,7 +118,7 @@ function Header() {
                     >
                       LogOut
                     </button></li>}
-                    {!isAuthenticated && <li className='mx-0 -my-1 text-sm sm:block hidden' onClick={() => closeMenu()}><Link to='/signup'> <button
+                    {!isAuthenticated && <li className='mx-0 -my-1 text-sm' onClick={() => closeMenu()}><Link to='/signup'> <button
                       type="button"
                       className="rounded-md border border-orange-600 px-4 py-1 text-sm font-semibold text-orange-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700 hover:border-orange-700"
                     >
