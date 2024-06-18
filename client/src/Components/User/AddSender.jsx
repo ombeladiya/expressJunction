@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Home, ChevronRight, CircleUserRound, ArrowLeft } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -99,7 +99,7 @@ export function AddSender() {
             navigate("/login")
         }
         getaddress();
-    }, [isAuthenticated]);
+    }, [isAuthenticated, navigate]);
 
     return (
         <div className="mx-auto w-full min-h-screen bg-slate-100 py-2">
