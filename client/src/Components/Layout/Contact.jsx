@@ -28,7 +28,7 @@ function Contact() {
                         <input type="text" placeholder="Your Name" onChange={(e) => setname(e.target.value)} required />
                         <textarea placeholder="Your Message" onChange={(e) => setmessage(e.target.value)} required></textarea>
                         <button type="submit" onClick={handleWhatsAppClick}>
-                            <i class="fa fa-whatsapp" aria-hidden="true"></i > WhatsApp
+                            <i className="fa fa-whatsapp" aria-hidden="true"></i > WhatsApp
                         </button>
                         <p className='mt-3'>OR Email to: <Link to="mailto:landmen@gmail.com" className='underline'>expressjunction@gmail.com</Link></p>
                     </form>
