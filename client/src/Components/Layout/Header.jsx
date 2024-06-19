@@ -103,7 +103,7 @@ function Header() {
                     {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/agent/dashboard'>Dashboard</Link></li>}
                     {isAuthenticated && user.role === 'agent' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/agent/scanner'>Scanner</Link></li>}
                     {isAuthenticated && user.role === 'company' && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/company/dashboard'>Dashboard</Link></li>}
-                    {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700'><Link to='/profile'>Profile</Link></li>}
+                    {isAuthenticated && <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/profile'>Profile</Link></li>}
                     <li className='mx-4 text-sm hover:text-zinc-700' onClick={() => closeMenu()}><Link to='/'>About Us</Link></li>
                     <li className='mx-4 text-sm hover:text-zinc-700 ' onClick={() => closeMenu()}><Link to='/contact'>Contact Us</Link></li>
                     {!isAuthenticated && <li className='mx-2 sm:mx-4 -my-1 text-sm' onClick={() => closeMenu()}><Link to='/login'> <button
@@ -118,12 +118,7 @@ function Header() {
                     >
                       LogOut
                     </button></li>}
-                    {!isAuthenticated && <li className='mx-0 -my-1 text-sm' onClick={() => closeMenu()}><Link to='/signup'> <button
-                      type="button"
-                      className="rounded-md border border-orange-600 px-4 py-1 text-sm font-semibold text-orange-600 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700 hover:border-orange-700"
-                    >
-                      Signup
-                    </button></Link></li>}
+
                   </ul>
                 </div>
               </div>
